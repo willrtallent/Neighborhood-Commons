@@ -1,0 +1,1611 @@
+<!doctype html>
+<html lang="en" data-theme="xp">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Neighborhood Commons — XP</title>
+<meta name="theme-color" content="#3a6ea5" />
+<style>
+/* =========================================================
+   THEME SYSTEM (same as before)
+   ========================================================= */
+
+/* ===== XP (base) variables ===== */
+:root{
+  --xp-blue-1:#3a6ea5; --xp-blue-2:#5b8ac7; --xp-blue-3:#2b587a;
+  --xp-green:#3da23a;
+  --bg:#e8f3ff; --panel:#ffffff; --ink:#0b0b0b; --muted:#3b3b3b;
+  --border:#7f9db9; --border-dark:#43688f;
+  --shadow: 0 2px 0 rgba(0,0,0,.12), 0 10px 24px rgba(0,0,0,.12);
+  --radius: 10px; --chip:#f5f8ff; --link:#0000ee;
+}
+:root{ color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+/* Cloudy bliss bg */
+body{
+  margin:0;
+  font: 15px/1.45 Tahoma, Verdana, Segoe UI, Arial, sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 500px at 20% -10%, rgba(255,255,255,.9), transparent 40%),
+    radial-gradient(1000px 500px at 80% 0%, rgba(255,255,255,.9), transparent 45%),
+    linear-gradient(#b6ddff, #e7f3ff 40%, #f8fbff 100%);
+  background-attachment: fixed;
+}
+a{color:var(--link); text-decoration: underline;}
+img{max-width:100%; height:auto; border-radius:6px}
+
+/* Header / title bar */
+header.app{
+  position:sticky; top:0; z-index:40;
+  box-shadow: var(--shadow);
+  border-bottom:1px solid var(--border-dark);
+  background:
+    linear-gradient(180deg, var(--xp-blue-2), var(--xp-blue-1) 55%, var(--xp-blue-3));
+  color:#fff;
+}
+header .bar{
+  display:flex; gap:12px; align-items:center; justify-content:space-between;
+  padding:10px 12px;
+}
+.brand{ display:flex; align-items:center; gap:10px; font-weight:700; }
+.logo{
+  width:26px; height:26px; border-radius:6px;
+  background:
+    radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,.35) 40%, transparent 41%),
+    linear-gradient(135deg, #67b3ff, #99d0ff);
+  border:1px solid rgba(255,255,255,.6);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.25);
+}
+.brand small{display:block; font-weight:600; opacity:.9; color:#eaf4ff}
+
+/* Tabbar */
+.tabbar{
+  display:flex; gap:6px; padding:8px 10px 10px; overflow:auto;
+  background:
+    linear-gradient(180deg, #e9f3ff, #d7e9ff);
+  border-top:1px solid #fff4;
+  border-bottom:1px solid var(--border);
+}
+.tab{
+  border:1px solid var(--border);
+  border-bottom-color:#b9cde2;
+  padding:6px 12px;
+  border-radius:6px 6px 0 0;
+  background: linear-gradient(#ffffff, #eef5ff);
+  color:#123a62; font-weight:700; cursor:pointer;
+}
+.tab[aria-selected="true"]{
+  background: linear-gradient(#fff, #f8fbff 60%, #e8f3ff);
+  box-shadow: inset 0 -2px 0 #fff, 0 2px 0 rgba(255,255,255,.6);
+}
+
+/* Layout */
+.container{max-width:1080px; margin:0 auto; padding: 12px 12px 100px}
+.panels [role="tabpanel"]{display:none}
+.panels [role="tabpanel"][data-active="true"]{display:block}
+
+/* Toolbar */
+.toolbar{
+  display:grid; gap:8px; grid-template-columns: 1fr; margin:10px 0;
+}
+@media(min-width:720px){ .toolbar{grid-template-columns: 1fr auto auto auto} }
+
+/* Inputs */
+.field{ display:flex; gap:8px; align-items:center; background:#fff; border:1px solid var(--border); padding:6px 8px; border-radius:6px; }
+input[type="search"],input[type="text"],input[type="datetime-local"],input[type="number"],textarea,select{
+  width:100%; font: inherit; color: inherit; border:1px solid var(--border); padding:6px 8px; border-radius:6px; background:#fff; outline-offset: 2px;
+}
+textarea{min-height:90px; resize:vertical}
+
+/* Buttons (XP beveled) */
+.btn{
+  background: linear-gradient(#ffffff, #eaf3ff);
+  border:1px solid var(--border); border-top-color:#ffffff; border-left-color:#ffffff;
+  padding:6px 10px; border-radius:6px; color:#0e2d52; font-weight:700;
+  box-shadow: inset 0 1px 0 #fff, 0 1px 0 rgba(0,0,0,.05);
+  cursor:pointer;
+}
+.btn:hover{background: linear-gradient(#ffffff, #dff0ff)}
+.btn.primary{ background: linear-gradient(#eaffea, #d1f5d1); color:#0a3a0a; border-color:#9fd49f; border-top-color:#fff; border-left-color:#fff; }
+.btn.danger{ background: linear-gradient(#ffecec, #ffdede); color:#5a0a0a; border-color:#e9b2b2; border-top-color:#fff; border-left-color:#fff; }
+.btn.small{font-size:.92rem; padding:5px 8px}
+.btn.ghost{background:#fff;}
+
+/* Cards */
+.card{
+  background: var(--panel);
+  border:1px solid var(--border);
+  border-top-color:#ffffff; border-left-color:#ffffff;
+  border-radius:8px; box-shadow: var(--shadow); padding:10px;
+}
+.meta{display:flex; flex-wrap:wrap; gap:6px; color:#1a3552}
+.chip{ background: var(--chip); border:1px solid #c7d8ee; border-radius:999px; padding:3px 8px; font-size:.85rem; }
+.row{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.muted{color:#555}
+
+/* Grid */
+.grid{display:grid; gap:10px; grid-template-columns:1fr}
+@media(min-width:720px){ .grid{grid-template-columns: repeat(2,1fr)} }
+@media(min-width:980px){ .grid{grid-template-columns: repeat(3,1fr)} }
+
+/* Status pills */
+.status{ font-weight:800; padding:3px 8px; border-radius:999px; font-size:.8rem; border:1px solid var(--border); background:#f7fbff; }
+.status.ok{color:#0b4e1c; background:#e9f9ee; border-color:#b6e4c0}
+.status.warn{color:#6b3d00; background:#fff5e6; border-color:#f0d9ab}
+.status.bad{color:#7a0d0d; background:#ffecee; border-color:#e0a7a7}
+
+/* Floating Add */
+.fab{
+  position:fixed; right:16px; bottom:16px; z-index:50;
+  display:inline-flex; gap:8px; align-items:center;
+  padding:12px 14px; border-radius:999px;
+  background: linear-gradient(#ecffe9, #c9f4c9);
+  color:#083a08; border:1px solid #93cf93; box-shadow: var(--shadow);
+  font-weight:800;
+}
+
+/* Dialogs */
+dialog{
+  border:1px solid var(--border);
+  border-top-color:#ffffff; border-left-color:#ffffff;
+  border-radius:8px; padding:0; background:#fff; color:var(--ink);
+  box-shadow: var(--shadow);
+  width:min(680px,96vw);
+}
+dialog::backdrop{background: rgba(0,0,0,.35)}
+dialog h3{margin:0; padding:8px 10px; color:#fff;
+  background: linear-gradient(180deg, var(--xp-blue-2), var(--xp-blue-1));
+  border-bottom:1px solid var(--border);
+}
+form.grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:10px}
+.full{grid-column:1/-1}
+
+/* README */
+details.readme{ margin:10px 12px; background:#fff; border:1px solid var(--border);
+  border-top-color:#ffffff; border-left-color:#ffffff; border-radius:8px; box-shadow: var(--shadow); padding:8px 10px; }
+summary{cursor:pointer; font-weight:700; color:#0f3b63}
+
+/* Misc */
+.empty{padding:18px; border:1px dashed var(--border); border-radius:8px; text-align:center; color:#333; background:#fff}
+.select{min-width:160px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+.notice{margin:8px 0; padding:8px 10px; border-radius:6px; font-size:.95rem; background:#fff; border:1px solid var(--border)}
+.notice.ok{border-color:#bfe6c4; background:#ecfff0}
+.notice.warn{border-color:#f0d9ab; background:#fff9ea}
+.notice.err{border-color:#e0a7a7; background:#ffefef}
+:focus{outline: 2px dotted #1f4c7a; outline-offset: 2px}
+
+/* --- Comments section --- */
+.comments{border-top:1px dashed var(--border); margin-top:8px; padding-top:8px}
+.comment{background:#fff; border:1px solid var(--border); border-radius:6px; padding:8px; margin:6px 0}
+.comment .who{font-weight:700; color:#0f3b63}
+.comment .when{color:#555; font-size:.85rem; margin-left:6px}
+
+/* =========================================================
+   THEME OVERRIDES (unchanged)
+   ========================================================= */
+
+/* Modern */
+[data-theme="modern"] body{ font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Tahoma, Arial, sans-serif; color:#0f172a; background: linear-gradient(#f7fafc, #f9fafb); }
+[data-theme="modern"] header.app{ background: linear-gradient(180deg, #1f2937, #111827); border-bottom-color:#0b1220; }
+[data-theme="modern"] .brand small{color:#cbd5e1}
+[data-theme="modern"] .tabbar{ background: #f1f5f9; border-bottom-color:#d6dee8; }
+[data-theme="modern"] .tab{ background:#fff; border:1px solid #e5e7eb; border-bottom-color:#d1d5db; border-radius:10px 10px 0 0; color:#0f172a; font-weight:600; box-shadow:none; }
+[data-theme="modern"] .tab[aria-selected="true"]{ background:#ffffff; box-shadow: 0 1px 0 #fff; }
+[data-theme="modern"] .btn{ background:#0ea5e9; color:#fff; border:1px solid #0284c7; box-shadow:none; }
+[data-theme="modern"] .btn:hover{ filter: brightness(1.05); }
+[data-theme="modern"] .btn.primary{ background:#22c55e; border-color:#16a34a; color:#072b10; }
+[data-theme="modern"] .btn.ghost{ background:#fff; color:#0f172a; border:1px solid #e5e7eb; }
+[data-theme="modern"] .btn.danger{ background:#f87171; color:#fff; border-color:#ef4444; }
+[data-theme="modern"] .card{ border:1px solid #e5e7eb; border-radius:12px; box-shadow: 0 10px 20px rgba(0,0,0,.05); }
+[data-theme="modern"] .chip{ background:#f8fafc; border-color:#e5e7eb; color:#0f172a; }
+[data-theme="modern"] .fab{ background:#22c55e; color:#062a11; border:1px solid #16a34a; box-shadow: 0 8px 20px rgba(16,185,129,.25); }
+[data-theme="modern"] dialog h3{ background: linear-gradient(180deg, #334155, #0f172a); border-bottom-color:#0b1220; }
+[data-theme="modern"] .field, [data-theme="modern"] input, [data-theme="modern"] textarea, [data-theme="modern"] select{ border-color:#e5e7eb; }
+[data-theme="modern"] .status{ border-color:#e5e7eb; }
+
+/* Y2K / Win98 */
+[data-theme="y2k98"] body{ font: 14px/1.45 Tahoma, Arial, sans-serif; color:#000; background: repeating-linear-gradient(90deg, #ffffff 0 8px, #fdfcfe 8px 16px); }
+[data-theme="y2k98"] header.app{ background:#7b00ff; border-bottom:2px solid #330066; }
+[data-theme="y2k98"] .brand small{color:#ffe4ff}
+[data-theme="y2k98"] .logo{ border-radius:3px; background: linear-gradient(180deg, #99ffcc, #ccffff); border:1px solid #330066; box-shadow:none; }
+[data-theme="y2k98"] .tabbar{ background:#f2f2f2; border-bottom:1px solid #9c9c9c; }
+[data-theme="y2k98"] .tab{ background:#ffffff; border:1px solid #9c9c9c; border-bottom-color:#7d7d7d; border-radius:3px 3px 0 0; color:#000; font-weight:700; box-shadow:none; }
+[data-theme="y2k98"] .tab[aria-selected="true"]{ background:#fffffe; box-shadow:none; border-bottom-color:#9c9c9c; }
+[data-theme="y2k98"] .btn{ background:#efefef; color:#000; border:1px solid #9c9c9c; box-shadow:none; border-radius:3px; }
+[data-theme="y2k98"] .btn:hover{ background:#e6e6e6 }
+[data-theme="y2k98"] .btn.primary{ background:#ccffcc; border-color:#66cc66; color:#003300; }
+[data-theme="y2k98"] .btn.danger{ background:#ffe6e6; border-color:#cc6666; color:#330000; }
+[data-theme="y2k98"] .btn.ghost{ background:#fff; }
+[data-theme="y2k98"] .card{ border:1px solid #9c9c9c; border-radius:3px; box-shadow:none; background:#fff; }
+[data-theme="y2k98"] .chip{ background:#f9f9f9; border-color:#9c9c9c; border-radius:3px; font-size:.8rem; }
+[data-theme="y2k98"] .fab{ background:#ccffcc; color:#003300; border:1px solid #66cc66; box-shadow:none; border-radius:20px; }
+[data-theme="y2k98"] dialog{ border:1px solid #9c9c9c; border-radius:3px; box-shadow:none; }
+[data-theme="y2k98"] dialog h3{ background:#330066; border-bottom:1px solid #220044; }
+[data-theme="y2k98"] .field, [data-theme="y2k98"] input, [data-theme="y2k98"] textarea, [data-theme="y2k98"] select{ border-color:#9c9c9c; border-radius:3px; }
+[data-theme="y2k98"] .status{ border-color:#9c9c9c; border-radius:3px; }
+[data-theme="y2k98"] .empty{ border-radius:3px; }
+</style>
+</head>
+<body>
+<a href="#main" class="sr-only">Skip to content</a>
+
+<header class="app" role="banner">
+  <div class="bar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <span id="brand-name">Neighborhood Commons</span>
+        <small>Hyperlocal sharing &amp; meetups</small>
+      </div>
+    </div>
+    <div class="actions" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap">
+      <button class="btn small ghost" id="btn-settings" title="Preferences (theme & more)">⚙ Settings</button>
+      <button class="btn small" id="btn-rename" title="Change group name (e.g., Grover Commons)">Rename</button>
+      <button class="btn small" id="btn-export" aria-label="Export data as JSON">Export JSON</button>
+      <label class="btn small ghost" for="import-input" aria-label="Import data from JSON">
+        Import JSON
+        <input id="import-input" type="file" accept="application/json" class="sr-only" />
+      </label>
+      <button class="btn small" id="btn-sync" title="Optional: sync with Google Sheet endpoint">Sync</button>
+      <button class="btn small danger" id="btn-wipe" title="Clear all local data (keeps a backup)">Reset</button>
+    </div>
+  </div>
+  <nav class="tabbar" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" aria-selected="true"  aria-controls="panel-items"   id="tab-items">Items</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="panel-board"   id="tab-board">Board</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="panel-requests" id="tab-requests">Requests</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="panel-events"  id="tab-events">Events</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="panel-members" id="tab-members">Members</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="panel-loans"   id="tab-loans">Loans</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="panel-rules"   id="tab-rules">Rules</button>
+  </nav>
+</header>
+
+<details class="readme">
+  <summary>README — Customize categories, tags, seed data & theme</summary>
+  <div class="help">
+    <p><b>Group name:</b> Use <i>Rename</i> (saved to localStorage & JSON). Default in <code>Models.DEFAULTS.groupName</code>.</p>
+    <p><b>Theme:</b> Open <b>⚙ Settings</b>. Choice persists in <code>db.meta.theme</code> (included in JSON exports/imports).</p>
+    <p><b>Defaults:</b> Edit <code>Models.DEFAULTS</code> (categories, itemTags, rules).</p>
+    <p><b>Seed data:</b> Edit <code>Models.seed()</code>. Seeding only runs if storage is empty.</p>
+    <p><b>Sheets sync:</b> Set <code>SYNC_URL</code> (optional). App works fully offline regardless.</p>
+    <p><b>Board:</b> New tab for posts + comments. Requests &amp; Events now support comments too.</p>
+  </div>
+</details>
+
+<main id="main" class="container" tabindex="-1">
+  <section class="panels">
+    <!-- Items -->
+    <div id="panel-items" role="tabpanel" aria-labelledby="tab-items" data-active="true">
+      <div class="toolbar" aria-label="Items controls">
+        <div class="field"><span aria-hidden="true">🔎</span><input id="items-search" type="search" placeholder="Search items — press / to focus" /></div>
+        <select id="items-filter-category" class="select" aria-label="Filter by category"></select>
+        <select id="items-filter-status" class="select" aria-label="Filter by status">
+          <option value="">All statuses</option>
+          <option value="available">Available</option>
+          <option value="unavailable">On loan</option>
+        </select>
+        <select id="items-filter-owner" class="select" aria-label="Filter by owner"></select>
+      </div>
+      <div class="toolbar" aria-label="Items sorting" style="grid-template-columns:auto auto auto auto">
+        <select id="items-sort" class="select" aria-label="Sort items">
+          <option value="recent">Sort: Recent</option>
+          <option value="az">Sort: A–Z</option>
+          <option value="category">Sort: Category</option>
+        </select>
+        <span class="muted" aria-hidden="true" style="align-self:center">|</span>
+        <span class="muted" style="align-self:center">Tip: click “Check out” on a card</span>
+      </div>
+      <div id="items-list" class="grid" aria-live="polite"></div>
+    </div>
+
+    <!-- Board -->
+    <div id="panel-board" role="tabpanel" aria-labelledby="tab-board">
+      <div class="toolbar">
+        <div class="field"><span aria-hidden="true">🔎</span><input id="board-search" type="search" placeholder="Search posts" /></div>
+        <select id="board-author" class="select" aria-label="Filter by author"></select>
+        <select id="board-sort" class="select" aria-label="Sort posts">
+          <option value="recent">Recent</option>
+          <option value="az">Title A–Z</option>
+        </select>
+      </div>
+      <div id="board-list" class="grid" aria-live="polite"></div>
+    </div>
+
+    <!-- Requests -->
+    <div id="panel-requests" role="tabpanel" aria-labelledby="tab-requests">
+      <div class="toolbar">
+        <div class="field"><span aria-hidden="true">🔎</span><input id="requests-search" type="search" placeholder="Search requests" /></div>
+        <select id="requests-filter-status" class="select" aria-label="Filter by status">
+          <option value="">All</option>
+          <option value="open">Open</option>
+          <option value="fulfilled">Fulfilled</option>
+        </select>
+        <select id="requests-filter-category" class="select" aria-label="Filter by category"></select>
+        <select id="requests-sort" class="select" aria-label="Sort">
+          <option value="recent">Recent</option>
+          <option value="az">A–Z</option>
+        </select>
+      </div>
+      <div id="requests-list" class="grid" aria-live="polite"></div>
+    </div>
+
+    <!-- Events -->
+    <div id="panel-events" role="tabpanel" aria-labelledby="tab-events">
+      <div class="toolbar">
+        <div class="field"><span aria-hidden="true">🔎</span><input id="events-search" type="search" placeholder="Search events" /></div>
+        <select id="events-sort" class="select" aria-label="Sort">
+          <option value="upcoming">Upcoming first</option>
+          <option value="recent">Recently added</option>
+          <option value="az">A–Z</option>
+        </select>
+      </div>
+      <div id="events-list" class="grid" aria-live="polite"></div>
+    </div>
+
+    <!-- Members -->
+    <div id="panel-members" role="tabpanel" aria-labelledby="tab-members">
+      <div class="toolbar">
+        <div class="field"><span aria-hidden="true">🔎</span><input id="members-search" type="search" placeholder="Search members" /></div>
+        <select id="members-sort" class="select" aria-label="Sort">
+          <option value="az">A–Z</option>
+          <option value="recent">Recently added</option>
+        </select>
+      </div>
+      <div id="members-list" class="grid" aria-live="polite"></div>
+    </div>
+
+    <!-- Loans -->
+    <div id="panel-loans" role="tabpanel" aria-labelledby="tab-loans">
+      <div class="toolbar">
+        <div class="field"><span aria-hidden="true">🔎</span><input id="loans-search" type="search" placeholder="Search loans" /></div>
+        <select id="loans-filter-status" class="select" aria-label="Filter by status">
+          <option value="">All</option>
+          <option value="active">Active</option>
+          <option value="overdue">Overdue</option>
+          <option value="returned">Returned</option>
+        </select>
+        <div class="muted" style="align-self:center">Check in/out from item cards or here</div>
+      </div>
+      <div id="loans-list" class="grid" aria-live="polite"></div>
+    </div>
+
+    <!-- Rules -->
+    <div id="panel-rules" role="tabpanel" aria-labelledby="tab-rules">
+      <div class="card">
+        <h3 style="margin:0 0 8px 0; font-size:1rem; color:#123a62">Community Rules &amp; Guidelines</h3>
+        <p class="muted">Location is a <em>vague</em> text—no GPS or exact addresses. Be kind, be safe, ask before sharing contact info.</p>
+        <textarea id="rules-text" class="rulebox" aria-label="Rules text" style="width:100%"></textarea>
+        <div class="row" style="margin-top:10px">
+          <div class="muted">Stored locally on your device.</div>
+          <div>
+            <button class="btn" id="btn-rules-revert">Revert</button>
+            <button class="btn primary" id="btn-rules-save">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- Floating Add -->
+<button id="fab-add" class="fab" aria-label="Add"><span aria-hidden="true">✚</span><span id="fab-label">Add item</span></button>
+
+<!-- ============ Rename Group Dialog ============ -->
+<dialog id="dlg-rename">
+  <h3>Group Name</h3>
+  <form id="form-rename" class="grid" method="dialog">
+    <div class="full">
+      <label for="rename-input">Name</label>
+      <input id="rename-input" name="name" required maxlength="60" placeholder="e.g., Grover Commons" />
+      <p class="muted" style="margin:.5rem 0 0">Keep it friendly &amp; general (no exact addresses).</p>
+    </div>
+    <div class="row full" style="justify-content:flex-end; gap:8px; margin-top:6px">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ============ Settings Dialog (Theme Picker) ============ -->
+<dialog id="dlg-settings">
+  <h3>Settings</h3>
+  <form id="form-settings" class="grid" method="dialog">
+    <fieldset class="full" style="border:none; padding:0; margin:0">
+      <legend class="sr-only">Theme</legend>
+      <label class="muted" style="display:block; margin-bottom:6px">Theme</label>
+      <div id="theme-options" role="radiogroup" aria-label="Theme choices"
+           style="display:grid; grid-template-columns:1fr; gap:6px"></div>
+    </fieldset>
+    <div class="row full" style="justify-content:flex-end; gap:8px; margin-top:6px">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ======= Item Dialog ======= -->
+<dialog id="dlg-item">
+  <h3>Item</h3>
+  <form id="form-item" class="grid" method="dialog">
+    <input type="hidden" name="id" />
+    <div>
+      <label for="item-title">Title</label>
+      <input id="item-title" name="title" required placeholder="e.g., Cordless drill" />
+    </div>
+    <div>
+      <label for="item-owner">Owner</label>
+      <select id="item-owner" name="ownerId" required></select>
+    </div>
+    <div>
+      <label for="item-category">Category</label>
+      <select id="item-category" name="category"></select>
+    </div>
+    <div>
+      <label for="item-policy">Share policy</label>
+      <select id="item-policy" name="policy">
+        <option value="lend">Lend</option>
+        <option value="give">Give</option>
+        <option value="rent">Rent</option>
+      </select>
+    </div>
+    <div>
+      <label for="item-dailyRate">Daily rate (if rent)</label>
+      <input id="item-dailyRate" name="dailyRate" type="number" step="0.01" min="0" placeholder="0.00" />
+    </div>
+    <div>
+      <label for="item-tags">Tags (comma-separated)</label>
+      <input id="item-tags" name="tags" placeholder="tools, battery" />
+    </div>
+    <div class="full">
+      <label for="item-imageUrl">Image URL (optional)</label>
+      <input id="item-imageUrl" name="imageUrl" type="url" placeholder="https://..." />
+    </div>
+    <div class="full">
+      <label for="item-description">Description</label>
+      <textarea id="item-description" name="description" placeholder="Condition, compatible parts, etc."></textarea>
+    </div>
+    <div class="row full" style="justify-content:flex-end; gap:8px; margin-top:6px">
+      <button type="button" class="btn" value="cancel" data-close>Cancel</button>
+      <button class="btn primary" value="default">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ======= Request Dialog ======= -->
+<dialog id="dlg-request">
+  <h3>Request</h3>
+  <form id="form-request" class="grid" method="dialog">
+    <input type="hidden" name="id" />
+    <div class="full">
+      <label for="req-title">Title</label>
+      <input id="req-title" name="title" required placeholder="e.g., Need ladder for weekend" />
+    </div>
+    <div>
+      <label for="req-requester">Requester</label>
+      <select id="req-requester" name="requesterId" required></select>
+    </div>
+    <div>
+      <label for="req-category">Category</label>
+      <select id="req-category" name="category"></select>
+    </div>
+    <div class="full">
+      <label for="req-details">Details</label>
+      <textarea id="req-details" name="details"></textarea>
+    </div>
+    <div>
+      <label for="req-helper">Assign helper (optional)</label>
+      <select id="req-helper" name="helperId"></select>
+    </div>
+    <div>
+      <label for="req-status">Status</label>
+      <select id="req-status" name="status">
+        <option value="open">Open</option>
+        <option value="fulfilled">Fulfilled</option>
+      </select>
+    </div>
+    <div class="row full" style="justify-content:flex-end; gap:8px; margin-top:6px">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ======= Event Dialog ======= -->
+<dialog id="dlg-event">
+  <h3>Event</h3>
+  <form id="form-event" class="grid" method="dialog">
+    <input type="hidden" name="id" />
+    <div class="full">
+      <label for="ev-title">Title</label>
+      <input id="ev-title" name="title" required placeholder="e.g., Sunday Potluck" />
+    </div>
+    <div>
+      <label for="ev-host">Host</label>
+      <select id="ev-host" name="hostId" required></select>
+    </div>
+    <div>
+      <label for="ev-location">Where (vague)</label>
+      <input id="ev-location" name="location" placeholder="e.g., Brentwood park tables" />
+    </div>
+    <div>
+      <label for="ev-start">Start</label>
+      <input id="ev-start" name="start" type="datetime-local" required />
+    </div>
+    <div>
+      <label for="ev-end">End</label>
+      <input id="ev-end" name="end" type="datetime-local" required />
+    </div>
+    <div class="full">
+      <label for="ev-desc">Description</label>
+      <textarea id="ev-desc" name="description"></textarea>
+    </div>
+    <div class="full">
+      <label for="ev-diet">Dietary notes (global)</label>
+      <input id="ev-diet" name="dietaryNotes" placeholder="e.g., Gluten-free friendly" />
+    </div>
+    <div class="row full" style="justify-content:flex-end; gap:8px; margin-top:6px">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ======= RSVP Dialog ======= -->
+<dialog id="dlg-rsvp">
+  <h3>RSVP</h3>
+  <form id="form-rsvp" class="grid" method="dialog">
+    <input type="hidden" name="eventId" />
+    <div>
+      <label for="rsvp-member">Member</label>
+      <select id="rsvp-member" name="memberId" required></select>
+    </div>
+    <div>
+      <label for="rsvp-response">Response</label>
+      <select id="rsvp-response" name="response">
+        <option value="yes">Yes</option>
+        <option value="maybe">Maybe</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+    <div>
+      <label for="rsvp-guests">Guests</label>
+      <input id="rsvp-guests" name="guests" type="number" min="0" value="0" />
+    </div>
+    <div class="full">
+      <label for="rsvp-diet">Dietary notes (person)</label>
+      <input id="rsvp-diet" name="dietary" placeholder="e.g., vegetarian" />
+    </div>
+    <div class="row full" style="justify-content:flex-end; gap:8px; margin-top:6px">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ======= Member Dialog ======= -->
+<dialog id="dlg-member">
+  <h3>Member</h3>
+  <form id="form-member" class="grid" method="dialog">
+    <input type="hidden" name="id" />
+    <div>
+      <label for="mem-name">Name</label>
+      <input id="mem-name" name="name" required />
+    </div>
+    <div>
+      <label for="mem-contact">Contact (best method)</label>
+      <input id="mem-contact" name="contact" placeholder="e.g., 512-123-4567 (SMS)" />
+    </div>
+    <div class="full">
+      <label for="mem-notes">Notes</label>
+      <textarea id="mem-notes" name="notes"></textarea>
+    </div>
+    <div class="row full" style="justify-content:flex-end; gap:8px; margin-top:6px">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ======= Loan Dialog ======= -->
+<dialog id="dlg-loan">
+  <h3>Loan / Rental</h3>
+  <form id="form-loan" class="grid" method="dialog">
+    <input type="hidden" name="id" />
+    <div class="full">
+      <label for="loan-item">Item</label>
+      <select id="loan-item" name="itemId" required></select>
+    </div>
+    <div>
+      <label for="loan-borrower">Borrower</label>
+      <select id="loan-borrower" name="borrowerId" required></select>
+    </div>
+    <div>
+      <label for="loan-start">Start</label>
+      <input id="loan-start" name="startDate" type="datetime-local" required />
+    </div>
+    <div>
+      <label for="loan-due">Due</label>
+      <input id="loan-due" name="dueDate" type="datetime-local" required />
+    </div>
+    <div>
+      <label for="loan-rate">Rate (if rental)</label>
+      <input id="loan-rate" name="agreedRate" type="number" step="0.01" min="0" />
+    </div>
+    <div class="full">
+      <label for="loan-notes">Notes</label>
+      <input id="loan-notes" name="notes" />
+    </div>
+    <div class="row full" style="justify-content:space-between; gap:8px; margin-top:6px">
+      <button type="button" class="btn" id="btn-return-loan">Check in</button>
+      <div>
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button class="btn primary">Save</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- ======= Post Dialog (Board) ======= -->
+<dialog id="dlg-post">
+  <h3>New Post</h3>
+  <form id="form-post" class="grid" method="dialog">
+    <input type="hidden" name="id" />
+    <div class="full">
+      <label for="post-title">Title</label>
+      <input id="post-title" name="title" required placeholder="e.g., Free tomatoes on my porch" />
+    </div>
+    <div>
+      <label for="post-author">Author</label>
+      <select id="post-author" name="authorId" required></select>
+    </div>
+    <div class="full">
+      <label for="post-body">Body</label>
+      <textarea id="post-body" name="body" placeholder="Say something nice to your neighbors"></textarea>
+    </div>
+    <div class="row full" style="justify-content:flex-end; gap:8px; margin-top:6px">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ======= Comment Dialog (Board/Requests/Events) ======= -->
+<dialog id="dlg-comment">
+  <h3>Comment</h3>
+  <form id="form-comment" class="grid" method="dialog">
+    <input type="hidden" name="targetType" />
+    <input type="hidden" name="targetId" />
+    <div>
+      <label for="cmt-author">Author</label>
+      <select id="cmt-author" name="authorId" required></select>
+    </div>
+    <div class="full">
+      <label for="cmt-body">Comment</label>
+      <textarea id="cmt-body" name="body" required placeholder="Be neighborly."></textarea>
+    </div>
+    <div class="row full" style="justify-content:flex-end; gap:8px; margin-top:6px">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ======= store.js ======= -->
+<script>
+const Store = (() => {
+  const KEY = 'nc.data.v1';
+  const BK_PREFIX = 'nc.backup.';
+  const nowIso = () => new Date().toISOString();
+  function saveAll(data){ const payload = {...data, savedAt: nowIso()}; localStorage.setItem(KEY, JSON.stringify(payload)); return payload; }
+  function loadAll(){ const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; }
+  function exportJson(){ const data = loadAll(); if(!data) throw new Error('Nothing to export');
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `neighborhood-commons-${new Date().toISOString().slice(0,10)}.json`; a.click();
+  }
+  async function importJson(file){ const text = await file.text(); const obj = JSON.parse(text); if(!obj.members || !obj.items) throw new Error('Invalid file format'); backup(); saveAll(obj); }
+  function backup(){ const data = loadAll(); if(!data) return; localStorage.setItem(BK_PREFIX + Date.now(), JSON.stringify(data)); }
+  function wipe(){ backup(); localStorage.removeItem(KEY); }
+  return {saveAll, loadAll, exportJson, importJson, wipe};
+})();
+</script>
+
+<!-- ======= models.js ======= -->
+<script>
+const Models = (() => {
+  const DEFAULTS = {
+    groupName: 'Neighborhood Commons',
+    theme: 'xp',
+    categories: ['Tools','Kitchen','Outdoors','Kid stuff','Books','Electronics','Party','Other'],
+    itemTags: ['battery','ladder','garden','cooking','party','repair'],
+    rules: `• Keep locations vague (e.g., "near Brentwood Park"). No exact addresses.\n• Ask before sharing someone else’s contact.\n• Return items on time & in original condition.\n• If renting, agree on rate up front.\n• Mark requests fulfilled when complete.\n• Be kind & neighborly.`
+  };
+  const id = () => Math.random().toString(36).slice(2,10);
+  function plusDays(d, hour=18){ const t = new Date(); t.setDate(t.getDate()+d); t.setHours(hour,0,0,0); return t.toISOString(); }
+  function seed(){
+    const members = ['Ben','Audrey','Jake','John Calvin','Jace','Harper','Will','Melissa','Brett Bowmen','Anna','Madison','Chris','Michael']
+      .map(name => ({id:id(), name, contact:'', notes:''}));
+    const byName = (n)=> members.find(m=>m.name===n)?.id;
+    const items = [
+      {title:'Cordless Drill (Makita 18V)', owner:'Ben', category:'Tools', tags:['battery','drill'], policy:'lend', dailyRate:null, imageUrl:'', description:'Two batteries, charger included.'},
+      {title:'Folding Table (6ft)', owner:'Audrey', category:'Party', tags:['party'], policy:'lend', dailyRate:null, imageUrl:'', description:''},
+      {title:'Lawn Mower', owner:'Jake', category:'Outdoors', tags:['garden'], policy:'rent', dailyRate:5, imageUrl:'', description:'Push mower, gas.'},
+      {title:'Instant Pot 6qt', owner:'Melissa', category:'Kitchen', tags:['cooking'], policy:'lend', dailyRate:null, imageUrl:'', description:''},
+      {title:'Kids Bike (5–7yo)', owner:'Harper', category:'Kid stuff', tags:['bike'], policy:'give', dailyRate:null, imageUrl:'', description:'Outgrown, free to good home.'},
+    ].map(it => ({ id:id(), title:it.title, ownerId: byName(it.owner), category:it.category, tags:it.tags,
+      policy:it.policy, dailyRate:it.dailyRate, imageUrl:it.imageUrl, description:it.description,
+      status:'available', createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() }));
+    const requests = [
+      {title:'Need a ladder this weekend', requester:'Will', details:'Saturday afternoon', category:'Tools'},
+      {title:'Borrow a cooler for picnic', requester:'Anna', details:'Sunday 12–4p', category:'Party'},
+    ].map(r => ({ id:id(), title:r.title, requesterId:byName(r.requester), details:r.details, category:r.category,
+      status:'open', helperId:'', createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), comments:[] }));
+    const events = [
+      {title:'Sunday Potluck', host:'Will', start:plusDays(5,18), end:plusDays(5,20),
+       location:'Ben’s cul-de-sac (near Brentwood Park)', description:'Bring a dish to share!', dietaryNotes:'Vegetarian-friendly'}
+    ].map(e => ({ id:id(), title:e.title, hostId:byName(e.host), start:e.start, end:e.end,
+      location:e.location, description:e.description, dietaryNotes:e.dietaryNotes, rsvps:[], comments:[] }));
+    const board = [
+      { id:id(), title:'Welcome to the board!', authorId: byName('Ben'),
+        body:'Say hi and share what you’re working on or offering.', createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(),
+        comments:[ { id:id(), authorId:byName('Audrey'), body:'Hi neighbors! 🌼', createdAt:new Date().toISOString() } ] }
+    ];
+    const loans = [];
+    return {
+      members, items, requests, events, loans, board,
+      rules: DEFAULTS.rules, savedAt: new Date().toISOString(),
+      meta:{ groupName: DEFAULTS.groupName, theme: DEFAULTS.theme, categories:DEFAULTS.categories, itemTags:DEFAULTS.itemTags }
+    };
+  }
+  return {DEFAULTS, seed, id};
+})();
+</script>
+
+<!-- ======= ui.js (logic + board + comments) ======= -->
+<script>
+(() => {
+  const SYNC_URL = ''; // Optional Apps Script web app URL
+
+  // Theme catalog for Settings dialog
+  const THEMES = [
+    { id: 'xp',    label: 'XP / Frutiger Aero' },
+    { id: 'modern',label: 'Modern' },
+    { id: 'y2k98', label: 'Y2K / Win98' },
+  ];
+
+  // ---- Load / migrate DB ----
+  let db = Store.loadAll();
+  if(!db){ db = Models.seed(); Store.saveAll(db); }
+  // Migrations for new features
+  db.board = db.board || [];
+  db.requests = (db.requests||[]).map(r => ({comments:[], ...r, comments: r.comments || []}));
+  db.events   = (db.events||[]).map(e => ({comments:[], ...e, comments: e.comments || []}));
+
+  if(!db.meta){ db.meta = {}; }
+  if(!db.meta.groupName) db.meta.groupName = Models.DEFAULTS.groupName;
+  if(!db.meta.theme) db.meta.theme = Models.DEFAULTS.theme || 'xp';
+  if(!db.meta.categories) db.meta.categories = Models.DEFAULTS.categories;
+  if(!db.meta.itemTags) db.meta.itemTags = Models.DEFAULTS.itemTags;
+
+  // ---- Helpers ----
+  const qs = (sel, el=document) => el.querySelector(sel);
+  const qsa = (sel, el=document) => [...el.querySelectorAll(sel)];
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleString([], {dateStyle:'medium', timeStyle:'short'}) : '';
+  const fmtDateShort = (iso) => iso ? new Date(iso).toLocaleDateString() : '';
+  const escapeHtml = (s='') => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const toISOInput = (iso) => { const d = iso? new Date(iso): new Date(); return d.toISOString().slice(0,16); };
+  const todayISO = () => new Date().toISOString();
+  function save(){ db.savedAt = new Date().toISOString(); Store.saveAll(db); renderActive(); }
+
+  // ---- Brand / Theme ----
+  function themeSuffix(t){ return t==='xp'?'XP' : t==='modern'?'Modern' : 'Y2K/Win98'; }
+  function renderBrand(){
+    const name = db.meta?.groupName || Models.DEFAULTS.groupName;
+    qs('#brand-name').textContent = name;
+    document.title = `${name} — ${themeSuffix(db.meta.theme)}`;
+    document.documentElement.setAttribute('data-theme', db.meta.theme);
+  }
+  renderBrand();
+
+  // (Optional) auto-pull once on load to reflect shared changes without clicking Sync
+  async function pullRemoteOnce(){
+    if(!SYNC_URL) return;
+    try{
+      const res = await fetch(SYNC_URL, {method:'GET'});
+      if(!res.ok) return;
+      const remote = await res.json();
+      if(remote && remote.ok && remote.db){
+        if((remote.savedAt||'') > (db.savedAt||'')){
+          db = remote.db;
+          // Post-migrate after adopting remote
+          db.board = db.board || [];
+          db.requests = (db.requests||[]).map(r => ({comments:[], ...r, comments: r.comments || []}));
+          db.events   = (db.events||[]).map(e => ({comments:[], ...e, comments: e.comments || []}));
+          Store.saveAll(db);
+          renderBrand();
+          renderActive();
+        }
+      }
+    }catch(e){}
+  }
+  pullRemoteOnce();
+
+  // ---- Keyboard helpers ----
+  window.addEventListener('keydown', (e)=>{
+    if(e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){ e.preventDefault();
+      const tab = currentTab();
+      const box = {
+        items:'#items-search',board:'#board-search',requests:'#requests-search',
+        events:'#events-search',members:'#members-search',loans:'#loans-search',rules:'#rules-text'
+      }[tab];
+      const el = qs(box); if(el){ el.focus(); el.select?.(); }
+    }
+    if(['ArrowLeft','ArrowRight'].includes(e.key) && document.activeElement.getAttribute('role')==='tab'){
+      const tabs = qsa('[role="tab"]'); let i = tabs.indexOf(document.activeElement);
+      i = e.key==='ArrowRight' ? (i+1)%tabs.length : (i-1+tabs.length)%tabs.length; tabs[i].focus(); tabs[i].click();
+    }
+  });
+
+  // ---- Tabs ----
+  qsa('[role="tab"]').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      qsa('[role="tab"]').forEach(t=>t.setAttribute('aria-selected','false'));
+      tab.setAttribute('aria-selected','true');
+      const id = tab.getAttribute('aria-controls');
+      qsa('[role="tabpanel"]').forEach(p=>p.dataset.active='false');
+      qs('#'+id).dataset.active='true';
+      updateFab(); renderActive();
+    });
+  });
+  function currentTab(){ const el = qsa('[role="tab"]').find(t=>t.getAttribute('aria-selected')==='true'); return el?.id?.replace('tab-','') || 'items'; }
+
+  // ---- FAB ----
+  const fab = qs('#fab-add'), fabLabel = qs('#fab-label');
+  function updateFab(){
+    const tab=currentTab();
+    fabLabel.textContent = ({
+      items:'Add item', board:'Add post', requests:'Add request',
+      events:'Add event', members:'Add member', loans:'New loan', rules:'Edit rules'
+    }[tab]||'Add');
+    fab.classList.toggle('hidden', false);
+  }
+  fab.addEventListener('click', ()=>{
+    const tab=currentTab();
+    if(tab==='items') openItem();
+    else if(tab==='board') openPost();
+    else if(tab==='requests') openRequest();
+    else if(tab==='events') openEvent();
+    else if(tab==='members') openMember();
+    else if(tab==='loans') openLoan();
+    else if(tab==='rules') qs('#rules-text').focus();
+  });
+
+  // ---- Header actions: Export / Import / Sync / Reset ----
+  qs('#btn-export')?.addEventListener('click', ()=>{ try{ Store.exportJson(); toast('Exported JSON','ok'); }catch(err){ toast(err.message,'err'); } });
+  qs('#import-input')?.addEventListener('change', async (e)=>{
+    const f = e.target.files?.[0]; if(!f) return;
+    try{
+      await Store.importJson(f); db = Store.loadAll();
+      // Ensure migrations post-import
+      db.board = db.board || [];
+      db.requests = (db.requests||[]).map(r => ({comments:[], ...r, comments: r.comments || []}));
+      db.events   = (db.events||[]).map(e2 => ({comments:[], ...e2, comments: e2.comments || []}));
+      db.meta = {
+        groupName: db.meta?.groupName || Models.DEFAULTS.groupName,
+        theme: db.meta?.theme || (Models.DEFAULTS.theme || 'xp'),
+        categories: db.meta?.categories || Models.DEFAULTS.categories,
+        itemTags: db.meta?.itemTags || Models.DEFAULTS.itemTags
+      };
+      Store.saveAll(db);
+      renderBrand(); renderActive(); toast('Imported JSON','ok');
+    }catch(err){ toast('Import failed: '+err.message,'err'); }
+    e.target.value='';
+  });
+
+  const syncBtn = qs('#btn-sync');
+  if(syncBtn){
+    syncBtn.disabled = !SYNC_URL;
+    syncBtn.title = SYNC_URL ? 'Sync with Google Sheet endpoint' : 'Set SYNC_URL in code to enable';
+    syncBtn.addEventListener('click', async ()=>{
+      if(!SYNC_URL){ toast('Sync not configured','warn'); return; }
+      try{
+        const res = await fetch(SYNC_URL, {method:'GET'});
+        if(res.ok){ const remote = await res.json(); const newer = (remote.savedAt||'') > (db.savedAt||'') ? remote : {db};
+          if(newer.db && newer.db !== db){ db=newer.db; Store.saveAll(db); renderBrand(); }
+        }
+        const push = await fetch(SYNC_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(db)});
+        if(!push.ok) throw new Error('POST failed'); toast('Synced successfully','ok');
+      }catch(err){ console.error(err); toast('Sync error: '+err.message,'err'); }
+    });
+  }
+
+  qs('#btn-wipe')?.addEventListener('click', ()=>{
+    if(confirm('This will clear local data (a backup copy is kept). Proceed?')){
+      Store.wipe(); db = Models.seed(); Store.saveAll(db); renderBrand(); renderActive(); toast('Reset complete','ok');
+    }
+  });
+
+  // ---- Rename group ----
+  qs('#btn-rename')?.addEventListener('click', openRename);
+  function openRename(){
+    const dlg = qs('#dlg-rename'); const f = qs('#form-rename');
+    f.reset(); qs('#rename-input').value = db.meta?.groupName || Models.DEFAULTS.groupName;
+    dlg.showModal();
+    dlg.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click', ()=>dlg.close(), {once:true}));
+    dlg.addEventListener('close', ()=>{}, {once:true});
+    f.onsubmit = (e)=>{
+      e.preventDefault();
+      const name = (qs('#rename-input').value || '').trim();
+      if(name.length < 2){ toast('Name should be at least 2 characters.','warn'); return; }
+      if(name.length > 60){ toast('Name is a bit long. Keep under 60 chars.','warn'); return; }
+      db.meta.groupName = name; save(); renderBrand(); dlg.close(); toast('Group renamed','ok');
+    };
+  }
+
+  // ---- Settings (Theme picker) ----
+  qs('#btn-settings')?.addEventListener('click', openSettings);
+  function openSettings(){
+    const dlg = qs('#dlg-settings');
+    const form = qs('#form-settings');
+    const host = qs('#theme-options');
+
+    host.innerHTML = THEMES.map(t => `
+      <label class="field" style="align-items:center">
+        <input type="radio" name="theme" value="${t.id}" ${db.meta.theme===t.id?'checked':''} />
+        <span style="margin-left:8px">${t.label}</span>
+      </label>
+    `).join('');
+
+    dlg.showModal();
+    dlg.querySelectorAll('[data-close]').forEventListener?.('click', ()=>dlg.close(), {once:true});
+    dlg.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click', ()=>dlg.close(), {once:true}));
+    dlg.addEventListener('close', ()=>{}, {once:true});
+    form.onsubmit = (e)=>{
+      e.preventDefault();
+      const chosen = form.querySelector('input[name="theme"]:checked')?.value || 'xp';
+      db.meta.theme = chosen; Store.saveAll(db); renderBrand(); dlg.close(); toast('Theme updated','ok');
+    };
+  }
+
+  // ---- Data helpers ----
+  function getMember(id){ return db.members.find(m=>m.id===id); }
+  function memberName(id){ return getMember(id)?.name || '—'; }
+  function itemAvailability(item){
+    const active = db.loans.find(l=>l.itemId===item.id && !l.returnedDate);
+    if(!active) return {status:'available'};
+    const overdue = new Date(active.dueDate) < new Date();
+    return {status:'unavailable', loan:active, overdue};
+  }
+  function loanStatus(l){ if(l.returnedDate) return 'returned'; return (new Date(l.dueDate) < new Date()) ? 'overdue' : 'active'; }
+
+  // ---- Render switch ----
+  function renderActive(){
+    const tab=currentTab();
+    if(tab==='items') renderItems();
+    else if(tab==='board') renderBoard();
+    else if(tab==='requests') renderRequests();
+    else if(tab==='events') renderEvents();
+    else if(tab==='members') renderMembers();
+    else if(tab==='loans') renderLoans();
+    else if(tab==='rules') renderRules();
+  }
+
+  // ---- Items (unchanged) ----
+  function renderItems(){
+    const catSel = qs('#items-filter-category');
+    if(!catSel.dataset.ready){
+      catSel.innerHTML = `<option value="">All categories</option>` + db.meta.categories.map(c=>`<option>${escapeHtml(c)}</option>`).join('');
+      catSel.dataset.ready='1';
+    }
+    const ownerSel = qs('#items-filter-owner');
+    ownerSel.innerHTML = `<option value="">All owners</option>` + db.members.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).sort().join('');
+
+    const q = qs('#items-search').value.toLowerCase().trim();
+    const cat = catSel.value; const st = qs('#items-filter-status').value; const owner = ownerSel.value; const sort = qs('#items-sort').value;
+
+    let rows = [...db.items].filter(r=>{
+      const matchQ = !q || r.title.toLowerCase().includes(q) || (r.tags||[]).join(' ').toLowerCase().includes(q);
+      const matchC = !cat || r.category===cat;
+      const av = itemAvailability(r);
+      const matchS = !st || (st==='available' ? av.status==='available' : av.status==='unavailable');
+      const matchO = !owner || r.ownerId===owner;
+      return matchQ && matchC && matchS && matchO;
+    });
+
+    if(sort==='az') rows.sort((a,b)=>a.title.localeCompare(b.title));
+    else if(sort==='category') rows.sort((a,b)=> (a.category||'').localeCompare(b.category||'') || a.title.localeCompare(b.title));
+    else rows.sort((a,b)=> (b.updatedAt||b.createdAt||'').localeCompare(a.updatedAt||a.createdAt||''));
+
+    const list = qs('#items-list');
+    if(rows.length===0){ list.innerHTML = `<div class="empty">No items yet. Use “Add item”.</div>`; return; }
+
+    list.innerHTML = rows.map(it=>{
+      const av = itemAvailability(it);
+      const stClass = av.status==='available' ? 'ok' : (av.overdue?'bad':'warn');
+      const stText = av.status==='available' ? 'Available' : (av.overdue?'Overdue':'On loan');
+      return `
+      <article class="card" aria-label="Item ${escapeHtml(it.title)}">
+        <div class="row">
+          <h3 style="margin:0; font-size:1.02rem; color:#0f3b63">${escapeHtml(it.title)}</h3>
+          <span class="status ${stClass}" title="${av.loan ? 'Due: '+fmtDate(av.loan.dueDate):''}">${stText}</span>
+        </div>
+        ${it.imageUrl?`<img src="${escapeHtml(it.imageUrl)}" alt="" loading="lazy" style="margin:8px 0">`:''}
+        <div class="meta">
+          <span class="chip" title="Owner">${escapeHtml(memberName(it.ownerId))}</span>
+          <span class="chip" title="Category">${escapeHtml(it.category||'—')}</span>
+          <span class="chip" title="Policy">${escapeHtml(it.policy||'lend')}</span>
+          ${it.policy==='rent' && it.dailyRate!=null ? `<span class="chip" title="Daily rate">$${Number(it.dailyRate).toFixed(2)}/day</span>`:''}
+          ${(it.tags||[]).map(t=>`<span class="chip">#${escapeHtml(t)}</span>`).join('')}
+        </div>
+        <p class="muted" style="margin:8px 0">${escapeHtml(it.description||'')}</p>
+        <div class="row">
+          <div class="muted">${fmtDateShort(it.updatedAt||it.createdAt)}</div>
+          <div>
+            <button class="btn small" data-act="checkout" data-id="${it.id}">${av.status==='available'?'Check out':'Details'}</button>
+            ${av.status!=='available'?`<button class="btn small" data-act="checkin" data-id="${it.id}">Check in</button>`:''}
+            <button class="btn small" data-act="edit" data-id="${it.id}">Edit</button>
+            <button class="btn small danger" data-act="del" data-id="${it.id}">Delete</button>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+
+    list.querySelectorAll('button[data-act]').forEach(btn=>{
+      const id = btn.dataset.id;
+      btn.addEventListener('click', ()=>{
+        const it = db.items.find(i=>i.id===id); if(!it) return;
+        if(btn.dataset.act==='edit') openItem(it);
+        else if(btn.dataset.act==='del'){ if(confirm('Delete this item?')){ db.items = db.items.filter(i=>i.id!==id); db.loans = db.loans.filter(l=>l.itemId!==id); save(); } }
+        else if(btn.dataset.act==='checkout'){ openLoan({itemId:id}); }
+        else if(btn.dataset.act==='checkin'){ const loan = db.loans.find(l=>l.itemId===id && !l.returnedDate);
+          if(loan){ loan.returnedDate = todayISO(); loan.status='returned'; save(); toast('Item checked in','ok'); }
+        }
+      });
+    });
+  }
+
+  // ---- Board (new) ----
+  function renderBoard(){
+    // Populate author filter
+    const authorSel = qs('#board-author');
+    authorSel.innerHTML = `<option value="">All authors</option>` + db.members.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+
+    const q = qs('#board-search').value.toLowerCase().trim();
+    const author = authorSel.value;
+    const sort = qs('#board-sort').value;
+
+    let rows = [...db.board].filter(p=>{
+      const hay = `${p.title} ${p.body}`.toLowerCase();
+      const matchQ = !q || hay.includes(q);
+      const matchA = !author || p.authorId===author;
+      return matchQ && matchA;
+    });
+
+    if(sort==='az') rows.sort((a,b)=> a.title.localeCompare(b.title));
+    else rows.sort((a,b)=> (b.updatedAt||b.createdAt||'').localeCompare(a.updatedAt||a.createdAt||''));
+
+    const list = qs('#board-list');
+    if(rows.length===0){ list.innerHTML = `<div class="empty">No posts yet. Use “Add post”.</div>`; return; }
+
+    list.innerHTML = rows.map(p=>{
+      const count = (p.comments||[]).length;
+      return `
+      <article class="card" data-type="board" data-id="${p.id}">
+        <div class="row">
+          <h3 style="margin:0; font-size:1.02rem; color:#0f3b63">${escapeHtml(p.title)}</h3>
+          <span class="chip">By ${escapeHtml(memberName(p.authorId))}</span>
+        </div>
+        <p class="muted" style="margin:8px 0; white-space:pre-wrap">${escapeHtml(p.body||'')}</p>
+        <div class="meta">
+          <span class="chip">${fmtDateShort(p.updatedAt||p.createdAt)}</span>
+          <span class="chip" title="Comments">💬 ${count}</span>
+        </div>
+        <div class="row">
+          <div></div>
+          <div>
+            <button class="btn small" data-act="comment" data-id="${p.id}">Comment</button>
+            <button class="btn small ghost" data-act="viewc" data-id="${p.id}">View</button>
+            <button class="btn small" data-act="edit" data-id="${p.id}">Edit</button>
+            <button class="btn small danger" data-act="del" data-id="${p.id}">Delete</button>
+          </div>
+        </div>
+        <div class="comments" id="comments-board-${p.id}" hidden></div>
+      </article>`;
+    }).join('');
+
+    list.querySelectorAll('button[data-act]').forEach(btn=>{
+      const id = btn.dataset.id;
+      btn.addEventListener('click', ()=>{
+        const p = db.board.find(x=>x.id===id); if(!p) return;
+        if(btn.dataset.act==='comment') openComment('board', id);
+        else if(btn.dataset.act==='viewc') toggleComments('board', id, btn);
+        else if(btn.dataset.act==='edit') openPost(p);
+        else if(btn.dataset.act==='del'){ if(confirm('Delete this post?')){ db.board = db.board.filter(x=>x.id!==id); save(); } }
+      });
+    });
+  }
+
+  // ---- Requests (with comments) ----
+  function renderRequests(){
+    const catSel = qs('#requests-filter-category');
+    if(!catSel.dataset.ready){
+      catSel.innerHTML = `<option value="">All categories</option>` + db.meta.categories.map(c=>`<option>${escapeHtml(c)}</option>`).join('');
+      catSel.dataset.ready='1';
+    }
+    const q = qs('#requests-search').value.toLowerCase().trim();
+    const cat = catSel.value; const st = qs('#requests-filter-status').value; const sort = qs('#requests-sort').value;
+
+    let rows = [...db.requests].filter(r=>{
+      const matchQ = !q || r.title.toLowerCase().includes(q) || (r.details||'').toLowerCase().includes(q);
+      const matchC = !cat || r.category===cat;
+      const matchS = !st || r.status===st;
+      return matchQ && matchC && matchS;
+    });
+
+    if(sort==='az') rows.sort((a,b)=>a.title.localeCompare(b.title));
+    else rows.sort((a,b)=> (b.updatedAt||b.createdAt||'').localeCompare(a.updatedAt||a.createdAt||''));
+
+    const list = qs('#requests-list');
+    if(rows.length===0){ list.innerHTML = `<div class="empty">No requests. Use “Add request”.</div>`; return; }
+
+    list.innerHTML = rows.map(r=>{
+      const cCount = (r.comments||[]).length;
+      return `
+      <article class="card" data-type="request" data-id="${r.id}">
+        <div class="row">
+          <h3 style="margin:0; font-size:1.02rem; color:#0f3b63">${escapeHtml(r.title)}</h3>
+          <span class="status ${r.status==='open'?'warn':'ok'}">${r.status}</span>
+        </div>
+        <div class="meta">
+          <span class="chip">${escapeHtml(memberName(r.requesterId))}</span>
+          ${r.helperId?`<span class="chip" title="Helper">Helper: ${escapeHtml(memberName(r.helperId))}</span>`:''}
+          <span class="chip">${escapeHtml(r.category||'—')}</span>
+          <span class="chip" title="Comments">💬 ${cCount}</span>
+        </div>
+        <p class="muted" style="margin:8px 0">${escapeHtml(r.details||'')}</p>
+        <div class="row">
+          <div class="muted">${fmtDateShort(r.updatedAt||r.createdAt)}</div>
+          <div>
+            <button class="btn small" data-act="toggle" data-id="${r.id}">${r.status==='open'?'Mark fulfilled':'Reopen'}</button>
+            <button class="btn small" data-act="comment" data-id="${r.id}">Comment</button>
+            <button class="btn small ghost" data-act="viewc" data-id="${r.id}">View</button>
+            <button class="btn small" data-act="edit" data-id="${r.id}">Edit</button>
+            <button class="btn small danger" data-act="del" data-id="${r.id}">Delete</button>
+          </div>
+        </div>
+        <div class="comments" id="comments-request-${r.id}" hidden></div>
+      </article>
+    `;
+    }).join('');
+
+    list.querySelectorAll('button[data-act]').forEach(btn=>{
+      const id = btn.dataset.id;
+      btn.addEventListener('click', ()=>{
+        const r = db.requests.find(x=>x.id===id); if(!r) return;
+        if(btn.dataset.act==='edit') openRequest(r);
+        else if(btn.dataset.act==='del'){ if(confirm('Delete this request?')){ db.requests = db.requests.filter(x=>x.id!==id); save(); } }
+        else if(btn.dataset.act==='toggle'){ r.status = (r.status==='open'?'fulfilled':'open'); r.updatedAt = todayISO(); save(); }
+        else if(btn.dataset.act==='comment'){ openComment('request', id); }
+        else if(btn.dataset.act==='viewc'){ toggleComments('request', id, btn); }
+      });
+    });
+  }
+
+  // ---- Events (with comments) ----
+  function renderEvents(){
+    const q = qs('#events-search').value.toLowerCase().trim();
+    const sort = qs('#events-sort').value;
+
+    let rows = [...db.events].filter(e=>{
+      const hay = [e.title, e.location, e.description, e.dietaryNotes].join(' ').toLowerCase();
+      return !q || hay.includes(q);
+    });
+
+    if(sort==='az') rows.sort((a,b)=>a.title.localeCompare(b.title));
+    else if(sort==='recent') rows.sort((a,b)=> (b.savedAt||b.start||'').localeCompare(a.savedAt||a.start||''));
+    else rows.sort((a,b)=> (a.start||'').localeCompare(b.start||''));
+
+    const list = qs('#events-list');
+    if(rows.length===0){ list.innerHTML = `<div class="empty">No events. Use “Add event”.</div>`; return; }
+
+    list.innerHTML = rows.map(e=>{
+      const counts = {yes:0, no:0, maybe:0, guests:0};
+      (e.rsvps||[]).forEach(r=>{ counts[r.response]=(counts[r.response]||0)+1; counts.guests += Number(r.guests||0); });
+      const totalYes = counts.yes + counts.guests;
+      const cCount = (e.comments||[]).length;
+      return `
+      <article class="card" data-type="event" data-id="${e.id}">
+        <div class="row">
+          <h3 style="margin:0; font-size:1.02rem; color:#0f3b63">${escapeHtml(e.title)}</h3>
+          <span class="chip" title="When">${fmtDate(e.start)} → ${fmtDate(e.end)}</span>
+        </div>
+        <div class="meta">
+          <span class="chip" title="Host">${escapeHtml(memberName(e.hostId))}</span>
+          <span class="chip" title="RSVPs">Yes: ${totalYes} • Maybe: ${counts.maybe}</span>
+          ${e.location?`<span class="chip" title="Location">${escapeHtml(e.location)}</span>`:''}
+          <span class="chip" title="Comments">💬 ${cCount}</span>
+        </div>
+        <p class="muted" style="margin:8px 0">${escapeHtml(e.description||'')}</p>
+        ${e.dietaryNotes?`<p class="muted"><b>Dietary:</b> ${escapeHtml(e.dietaryNotes)}</p>`:''}
+        <div class="row">
+          <div class="muted">${(e.rsvps||[]).length} responses</div>
+          <div>
+            <button class="btn small" data-act="rsvp" data-id="${e.id}">RSVP</button>
+            <button class="btn small" data-act="comment" data-id="${e.id}">Comment</button>
+            <button class="btn small ghost" data-act="viewc" data-id="${e.id}">View</button>
+            <button class="btn small" data-act="ics" data-id="${e.id}">.ics</button>
+            <button class="btn small" data-act="edit" data-id="${e.id}">Edit</button>
+            <button class="btn small danger" data-act="del" data-id="${e.id}">Delete</button>
+          </div>
+        </div>
+        <div class="comments" id="comments-event-${e.id}" hidden></div>
+      </article>`;
+    }).join('');
+
+    list.querySelectorAll('button[data-act]').forEach(btn=>{
+      const eId = btn.dataset.id;
+      btn.addEventListener('click', ()=>{
+        const ev = db.events.find(x=>x.id===eId); if(!ev) return;
+        if(btn.dataset.act==='rsvp') openRSVP(ev);
+        else if(btn.dataset.act==='ics') downloadICS(ev);
+        else if(btn.dataset.act==='edit') openEvent(ev);
+        else if(btn.dataset.act==='del'){ if(confirm('Delete this event?')){ db.events = db.events.filter(x=>x.id!==eId); save(); } }
+        else if(btn.dataset.act==='comment'){ openComment('event', eId); }
+        else if(btn.dataset.act==='viewc'){ toggleComments('event', eId, btn); }
+      });
+    });
+  }
+
+  // ---- Members ----
+  function renderMembers(){
+    const q = qs('#members-search').value.toLowerCase().trim();
+    const sort = qs('#members-sort').value;
+
+    let rows = [...db.members].filter(m=> !q || m.name.toLowerCase().includes(q) || (m.contact||'').toLowerCase().includes(q));
+    if(sort==='recent') rows.reverse(); else rows.sort((a,b)=>a.name.localeCompare(b.name));
+
+    const list = qs('#members-list');
+    if(rows.length===0){ list.innerHTML = `<div class="empty">No members. Use “Add member”.</div>`; return; }
+
+    list.innerHTML = rows.map(m=>`
+      <article class="card">
+        <div class="row">
+          <h3 style="margin:0; font-size:1.02rem; color:#0f3b63">${escapeHtml(m.name)}</h3>
+          <span class="chip">${escapeHtml(m.contact||'No contact set')}</span>
+        </div>
+        <p class="muted" style="margin:8px 0">${escapeHtml(m.notes||'')}</p>
+        <div class="row">
+          <div class="muted">ID: ${escapeHtml(m.id)}</div>
+          <div>
+            <button class="btn small" data-act="edit" data-id="${m.id}">Edit</button>
+            <button class="btn small danger" data-act="del" data-id="${m.id}">Delete</button>
+          </div>
+        </div>
+      </article>
+    `).join('');
+
+    list.querySelectorAll('button[data-act]').forEach(btn=>{
+      const id = btn.dataset.id;
+      btn.addEventListener('click', ()=>{
+        const m = db.members.find(x=>x.id===id);
+        if(btn.dataset.act==='edit') openMember(m);
+        else if(btn.dataset.act==='del'){
+          if(confirm('Delete this member? (Items/loans remain with the old ID)')){
+            db.members = db.members.filter(x=>x.id!==id); save();
+          }
+        }
+      });
+    });
+  }
+
+  // ---- Loans ----
+  function renderLoans(){
+    const q = qs('#loans-search').value.toLowerCase().trim();
+    const st = qs('#loans-filter-status').value;
+
+    let rows = [...db.loans].filter(l=>{
+      const item = db.items.find(i=>i.id===l.itemId);
+      const borrower = db.members.find(m=>m.id===l.borrowerId);
+      const matchQ = !q || [item?.title, borrower?.name].join(' ').toLowerCase().includes(q);
+      const status = loanStatus(l);
+      const matchS = !st || status===st;
+      return matchQ && matchS;
+    });
+
+    rows.sort((a,b)=> (b.startDate||'').localeCompare(a.startDate||''));
+
+    const list = qs('#loans-list');
+    if(rows.length===0){ list.innerHTML = `<div class="empty">No loans yet. Check out an item to create one.</div>`; return; }
+
+    list.innerHTML = rows.map(l=>{
+      const item = db.items.find(i=>i.id===l.itemId);
+      const borrower = db.members.find(m=>m.id===l.borrowerId);
+      const status = loanStatus(l);
+      const stClass = status==='active' ? 'warn' : status==='overdue' ? 'bad' : 'ok';
+      return `
+      <article class="card">
+        <div class="row">
+          <h3 style="margin:0; color:#0f3b63">${escapeHtml(item?.title || 'Item')}</h3>
+          <span class="status ${stClass}">${status}</span>
+        </div>
+        <div class="meta">
+          <span class="chip">Borrower: ${escapeHtml(borrower?.name||'—')}</span>
+          <span class="chip">Start: ${fmtDate(l.startDate)}</span>
+          <span class="chip">Due: ${fmtDate(l.dueDate)}</span>
+          ${l.returnedDate?`<span class="chip">Returned: ${fmtDate(l.returnedDate)}</span>`:''}
+          ${l.isRental?`<span class="chip">Rate: $${Number(l.agreedRate||0).toFixed(2)}/day</span>`:''}
+        </div>
+        <p class="muted" style="margin:8px 0">${escapeHtml(l.notes||'')}</p>
+        <div class="row">
+          <div class="muted">ID: ${escapeHtml(l.id)}</div>
+          <div>
+            ${!l.returnedDate?`<button class="btn small" data-act="return" data-id="${l.id}">Check in</button>`:''}
+            <button class="btn small" data-act="edit" data-id="${l.id}">Edit</button>
+            <button class="btn small danger" data-act="del" data-id="${l.id}">Delete</button>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+
+    list.querySelectorAll('button[data-act]').forEach(btn=>{
+      const id = btn.dataset.id;
+      btn.addEventListener('click', ()=>{
+        const l = db.loans.find(x=>x.id===id); if(!l) return;
+        if(btn.dataset.act==='return'){ l.returnedDate = todayISO(); l.status='returned'; save(); toast('Checked in','ok'); }
+        else if(btn.dataset.act==='edit') openLoan(l);
+        else if(btn.dataset.act==='del'){ if(confirm('Delete this loan?')){ db.loans = db.loans.filter(x=>x.id!==id); save(); } }
+      });
+    });
+  }
+
+  // ---- Rules ----
+  function renderRules(){ qs('#rules-text').value = db.rules || Models.DEFAULTS.rules; }
+  qs('#btn-rules-save')?.addEventListener('click', ()=>{ db.rules = qs('#rules-text').value; save(); toast('Rules saved','ok'); });
+  qs('#btn-rules-revert')?.addEventListener('click', ()=>{ qs('#rules-text').value = Models.DEFAULTS.rules; });
+
+  // ---- Dialog helpers ----
+  function fillMemberSelect(sel, includeEmpty=false){ sel.innerHTML = (includeEmpty?`<option value=""></option>`:'') + db.members.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join(''); }
+  function fillCategorySelect(sel){ sel.innerHTML = db.meta.categories.map(c=>`<option value="${c}">${escapeHtml(c)}</option>`).join('') + `<option value="">(none)</option>`; }
+  function showDialog(dlg){ dlg.showModal(); dlg.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click', ()=>dlg.close())); dlg.addEventListener('close', ()=> renderActive(), {once:true}); }
+
+  // ---- Item dialog ----
+  function openItem(item=null){
+    const dlg = qs('#dlg-item'); const f = qs('#form-item');
+    fillMemberSelect(qs('#item-owner')); fillCategorySelect(qs('#item-category')); f.reset();
+    const data = item || {id:Models.id(), title:'', ownerId:db.members[0]?.id||'', category:'', policy:'lend', dailyRate:'', tags:'', imageUrl:'', description:''};
+    f.id.value = data.id; f.title.value = data.title; f.ownerId.value = data.ownerId||''; f.category.value = data.category||'';
+    f.policy.value = data.policy||'lend'; f.dailyRate.value = data.dailyRate ?? ''; qs('#item-tags').value = (data.tags||[]).join(', ');
+    f.imageUrl.value = data.imageUrl||''; f.description.value = data.description||''; showDialog(dlg);
+    f.onsubmit = (e)=>{
+      e.preventDefault();
+      const policy = f.policy.value; const daily = f.dailyRate.value ? Number(f.dailyRate.value) : null;
+      if(policy==='rent' && (daily==null || isNaN(daily))){ toast('Please set a valid daily rate for rentals.','warn'); return; }
+      const rec = { id:f.id.value || Models.id(), title:f.title.value.trim(), ownerId:f.ownerId.value, category:f.category.value || '',
+        policy, dailyRate: policy==='rent'? Number(daily): null, tags: qs('#item-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+        imageUrl:f.imageUrl.value.trim(), description:f.description.value.trim(), status:'available', updatedAt: todayISO(), createdAt: item?.createdAt || todayISO() };
+      if(!rec.title){ toast('Title required','warn'); return; }
+      if(item){ db.items = db.items.map(i=> i.id===rec.id ? rec : i); } else { db.items.push(rec); }
+      save(); dlg.close();
+    };
+  }
+
+  // ---- Request dialog ----
+  function openRequest(req=null){
+    const dlg = qs('#dlg-request'); const f = qs('#form-request');
+    fillMemberSelect(qs('#req-requester')); fillMemberSelect(qs('#req-helper'), true); fillCategorySelect(qs('#req-category')); f.reset();
+    const data = req || {id:Models.id(), title:'', requesterId:db.members[0]?.id||'', details:'', category:'', status:'open', helperId:''};
+    f.id.value=data.id; f.title.value=data.title; f.requesterId.value=data.requesterId||''; f.details.value=data.details||''; f.category.value=data.category||''; f.status.value=data.status||'open'; f.helperId.value=data.helperId||''; showDialog(dlg);
+    f.onsubmit=(e)=>{
+      e.preventDefault();
+      const rec = { id:f.id.value || Models.id(), title:f.title.value.trim(), requesterId:f.requesterId.value, details:f.details.value.trim(),
+        category:f.category.value || '', status:f.status.value, helperId:f.helperId.value || '', updatedAt: todayISO(), createdAt: req?.createdAt || todayISO(), comments: req?.comments || [] };
+      if(!rec.title){ toast('Title required','warn'); return; }
+      if(req){ db.requests = db.requests.map(r=> r.id===rec.id? rec : r); } else { db.requests.push(rec); }
+      save(); dlg.close();
+    };
+  }
+
+  // ---- Event dialog ----
+  function openEvent(ev=null){
+    const dlg = qs('#dlg-event'); const f = qs('#form-event'); fillMemberSelect(qs('#ev-host')); f.reset();
+    const data = ev || {id:Models.id(), title:'', hostId:db.members[0]?.id||'', location:'', start:todayISO(), end:todayISO(), description:'', dietaryNotes:''};
+    f.id.value=data.id; f.title.value=data.title; f.hostId.value=data.hostId||''; f.location.value=data.location||'';
+    f.start.value = toISOInput(data.start); f.end.value = toISOInput(data.end);
+    f.description.value=data.description||''; f.dietaryNotes.value=data.dietaryNotes||''; showDialog(dlg);
+    f.onsubmit=(e)=>{
+      e.preventDefault();
+      const rec = { id:f.id.value || Models.id(), title:f.title.value.trim(), hostId:f.hostId.value,
+        start:new Date(f.start.value).toISOString(), end:new Date(f.end.value).toISOString(),
+        location:f.location.value.trim(), description:f.description.value.trim(), dietaryNotes:f.dietaryNotes.value.trim(),
+        rsvps: ev?.rsvps || [], comments: ev?.comments || [] };
+      if(!rec.title){ toast('Title required','warn'); return; }
+      if(new Date(rec.end) <= new Date(rec.start)){ toast('End must be after start','warn'); return; }
+      if(ev){ db.events = db.events.map(x=> x.id===rec.id? rec : x); } else { db.events.push(rec); }
+      save(); dlg.close();
+    };
+  }
+
+  // ---- Post dialog (Board) ----
+  function openPost(post=null){
+    const dlg = qs('#dlg-post'); const f = qs('#form-post'); f.reset();
+    fillMemberSelect(qs('#post-author'));
+    const data = post || {id:Models.id(), title:'', authorId:db.members[0]?.id||'', body:''};
+    f.id.value=data.id; f.title.value=data.title; f.authorId.value=data.authorId||''; f.body.value=data.body||''; showDialog(dlg);
+    f.onsubmit=(e)=>{
+      e.preventDefault();
+      const rec = { id:f.id.value || Models.id(), title:f.title.value.trim(), authorId:f.authorId.value, body:f.body.value.trim(),
+        createdAt: post?.createdAt || todayISO(), updatedAt: todayISO(), comments: post?.comments || [] };
+      if(!rec.title){ toast('Title required','warn'); return; }
+      if(post){ db.board = db.board.map(p=> p.id===rec.id? rec : p); } else { db.board.push(rec); }
+      save(); dlg.close();
+    };
+  }
+
+  // ---- Comment dialog (generic) ----
+  qs('#form-comment')?.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const f = e.target;
+    const type = f.targetType.value;
+    const id = f.targetId.value;
+    const comment = {
+      id: Models.id(),
+      authorId: f.authorId.value,
+      body: f.body.value.trim(),
+      createdAt: todayISO()
+    };
+    if(!comment.body){ toast('Comment cannot be empty.','warn'); return; }
+
+    if(type==='board'){
+      const p = db.board.find(x=>x.id===id); if(!p) return;
+      p.comments = p.comments || []; p.comments.push(comment); p.updatedAt = todayISO();
+    } else if(type==='request'){
+      const r = db.requests.find(x=>x.id===id); if(!r) return;
+      r.comments = r.comments || []; r.comments.push(comment); r.updatedAt = todayISO();
+    } else if(type==='event'){
+      const ev = db.events.find(x=>x.id===id); if(!ev) return;
+      ev.comments = ev.comments || []; ev.comments.push(comment);
+    }
+    save();
+    qs('#dlg-comment').close();
+  });
+
+  function openComment(type, id){
+    const dlg = qs('#dlg-comment'); const f = qs('#form-comment'); f.reset();
+    fillMemberSelect(qs('#cmt-author'));
+    f.targetType.value = type; f.targetId.value = id;
+    showDialog(dlg);
+  }
+
+  // ---- Toggle comments rendering ----
+  function toggleComments(type, id, btn){
+    const cont = qs(`#comments-${type}-${id}`); if(!cont) return;
+    if(cont.hasAttribute('hidden')){ cont.removeAttribute('hidden'); btn.textContent='Hide'; }
+    else { cont.setAttribute('hidden',''); btn.textContent='View'; return; }
+    let comments = [];
+    if(type==='board'){ const p = db.board.find(x=>x.id===id); comments = p?.comments||[]; }
+    else if(type==='request'){ const r = db.requests.find(x=>x.id===id); comments = r?.comments||[]; }
+    else if(type==='event'){ const ev = db.events.find(x=>x.id===id); comments = ev?.comments||[]; }
+
+    if(!comments.length){ cont.innerHTML = `<div class="muted">No comments yet — be the first to comment.</div>`; return; }
+    cont.innerHTML = comments.map(c=>`
+      <div class="comment">
+        <div><span class="who">${escapeHtml(memberName(c.authorId))}</span><span class="when">• ${fmtDate(c.createdAt)}</span></div>
+        <div style="white-space:pre-wrap; margin-top:4px">${escapeHtml(c.body)}</div>
+      </div>
+    `).join('');
+  }
+
+  // ---- RSVP dialog ----
+  function openRSVP(ev){
+    const dlg = qs('#dlg-rsvp'); const f = qs('#form-rsvp'); fillMemberSelect(qs('#rsvp-member')); f.reset(); f.eventId.value=ev.id; showDialog(dlg);
+    f.onsubmit=(e)=>{
+      e.preventDefault();
+      const rec = { memberId:f.memberId.value, response:f.response.value, guests:Number(f.guests.value||0), dietary:f.dietary.value.trim() };
+      const idx = ev.rsvps.findIndex(r=>r.memberId===rec.memberId); if(idx>=0) ev.rsvps[idx]=rec; else ev.rsvps.push(rec);
+      save(); dlg.close();
+    };
+  }
+
+  // ---- Member dialog ----
+  function openMember(mem=null){
+    const dlg = qs('#dlg-member'); const f = qs('#form-member'); f.reset();
+    const data = mem || {id:Models.id(), name:'', contact:'', notes:''};
+    f.id.value=data.id; f.name.value=data.name; f.contact.value=data.contact||''; f.notes.value=data.notes||''; showDialog(dlg);
+    f.onsubmit=(e)=>{
+      e.preventDefault();
+      const rec = { id:f.id.value || Models.id(), name:f.name.value.trim(), contact:f.contact.value.trim(), notes:f.notes.value.trim() };
+      if(!rec.name){ toast('Name required','warn'); return; }
+      if(mem){ db.members = db.members.map(m=> m.id===rec.id? rec : m); } else { db.members.push(rec); }
+      save(); dlg.close();
+    };
+  }
+
+  // ---- Loan dialog ----
+  function openLoan(loan=null){
+    const dlg = qs('#dlg-loan'); const f = qs('#form-loan');
+    const items = [...db.items];
+    qs('#loan-item').innerHTML = items.map(i=>{
+      const av = itemAvailability(i).status==='available' || (loan && loan.itemId===i.id);
+      return `<option value="${i.id}" ${av?'':'disabled'}>${escapeHtml(i.title)} ${av?'':'(unavailable)'}</option>`;
+    }).join('');
+    fillMemberSelect(qs('#loan-borrower')); f.reset();
+    const data = loan || {id:Models.id(), itemId:(loan?.itemId||''), borrowerId:db.members[0]?.id||'', startDate: todayISO(), dueDate: new Date(Date.now()+7*864e5).toISOString(), returnedDate:'', notes:'', isRental:false, agreedRate:null};
+    f.id.value=data.id; f.itemId.value=data.itemId||db.items[0]?.id||''; f.borrowerId.value=data.borrowerId||'';
+    f.startDate.value = toISOInput(data.startDate||todayISO()); f.dueDate.value = toISOInput(data.dueDate||todayISO()); f.agreedRate.value = data.agreedRate ?? '';
+    qs('#btn-return-loan').style.visibility = loan && !loan.returnedDate ? 'visible':'hidden'; showDialog(dlg);
+    qs('#btn-return-loan').onclick = ()=>{ if(!loan) return; loan.returnedDate = todayISO(); loan.status='returned'; save(); dlg.close(); };
+    f.onsubmit=(e)=>{
+      e.preventDefault();
+      const item = db.items.find(i=>i.id===f.itemId.value);
+      const isRental = item?.policy==='rent';
+      const rate = f.agreedRate.value ? Number(f.agreedRate.value) : (isRental ? (item.dailyRate||0) : null);
+      if(isRental && (rate==null || isNaN(rate))) { toast('Set a valid rate for rental','warn'); return; }
+      const rec = { id:f.id.value || Models.id(), itemId:f.itemId.value, borrowerId:f.borrowerId.value,
+        startDate:new Date(f.startDate.value).toISOString(), dueDate:new Date(f.dueDate.value).toISOString(),
+        returnedDate: loan?.returnedDate || '', notes: f.notes.value, isRental, agreedRate: isRental? Number(rate): null };
+      rec.status = loanStatus(rec);
+      if(new Date(rec.dueDate) <= new Date(rec.startDate)){ toast('Due must be after start','warn'); return; }
+      if(!loan){
+        const exists = db.loans.find(l=>l.itemId===rec.itemId && !l.returnedDate);
+        if(exists){ toast('This item is already on loan','warn'); return; }
+        db.loans.push(rec);
+      } else { db.loans = db.loans.map(l=> l.id===rec.id? {...l, ...rec}: l); }
+      save(); dlg.close();
+    };
+  }
+
+  // ---- ICS ----
+  function downloadICS(ev){
+    const lines = [
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Neighborhood Commons//EN','BEGIN:VEVENT',
+      `UID:${ev.id}@nc`,`DTSTAMP:${toICS(new Date().toISOString())}`,
+      `DTSTART:${toICS(ev.start)}`,`DTEND:${toICS(ev.end)}`,
+      `SUMMARY:${icsEscape(ev.title)}`,
+      `DESCRIPTION:${icsEscape((ev.description||'') + (ev.dietaryNotes? '\\nDietary: '+ev.dietaryNotes:''))}`,
+      `LOCATION:${icsEscape(ev.location||'')}`,'END:VEVENT','END:VCALENDAR'
+    ].join('\r\n');
+    const blob = new Blob([lines], {type:'text/calendar'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title.replace(/\s+/g,'_')}.ics`; a.click();
+  }
+  function toICS(iso){ const d=new Date(iso); const p=n=>String(n).padStart(2,'0');
+    return `${d.getUTCFullYear()}${p(d.getUTCMonth()+1)}${p(d.getUTCDate())}T${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}Z`; }
+  function icsEscape(s){ return (s||'').replace(/([,;])/g,'\\$1').replace(/\n/g,'\\n'); }
+
+  // ---- Re-render on search/filter input ----
+  ['items','board','requests','events','members','loans'].forEach(t=>{
+    qsa(`#panel-${t} input, #panel-${t} select`).forEach(el=> el.addEventListener('input', renderActive));
+  });
+
+  // ---- Toasts ----
+  const toaster = document.createElement('div');
+  Object.assign(toaster.style,{position:'fixed', left:'50%', bottom:'24px', transform:'translateX(-50%)', zIndex:100});
+  document.body.appendChild(toaster);
+  function toast(msg, type='ok'){
+    const el=document.createElement('div'); el.className=`notice ${type==='ok'?'ok': type==='warn'?'warn':'err'}`;
+    el.textContent=msg; el.style.minWidth='220px'; toaster.appendChild(el); setTimeout(()=>el.remove(), 2200);
+  }
+
+  // ---- Global error ----
+  window.addEventListener('error', (e)=>{
+    const msg = (e && e.message) ? e.message : 'Unknown script error';
+    if(!msg) return;
+    const el = document.createElement('div');
+    el.className = 'notice err';
+    el.textContent = `Script error: ${msg}`;
+    el.style.position='fixed'; el.style.top='10px'; el.style.left='50%'; el.style.transform='translateX(-50%)'; el.style.zIndex=200;
+    document.body.appendChild(el); setTimeout(()=>el.remove(), 4000);
+  });
+
+  // ---- Initial render ----
+  renderActive();
+})();
+</script>
+
+</body>
+</html>
