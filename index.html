@@ -771,6 +771,8 @@ const Models = (() => {
 <script>
 (() => {
   const SYNC_URL = ''; // Optional Apps Script web app URL
+  const AUTOPUSH = true;           // set to false to disable
+  let __pushTimer = null;
 
   // Theme catalog for Settings dialog
   const THEMES = [
@@ -801,7 +803,12 @@ const Models = (() => {
   const escapeHtml = (s='') => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const toISOInput = (iso) => { const d = iso? new Date(iso): new Date(); return d.toISOString().slice(0,16); };
   const todayISO = () => new Date().toISOString();
-  function save(){ db.savedAt = new Date().toISOString(); Store.saveAll(db); renderActive(); }
+  function save(){
+  db.savedAt = new Date().toISOString();
+  Store.saveAll(db);
+  renderActive();
+  schedulePush();   // <- add this line
+  }
 
   // ---- Brand / Theme ----
   function themeSuffix(t){ return t==='xp'?'XP' : t==='modern'?'Modern' : 'Y2K/Win98'; }
@@ -834,6 +841,36 @@ const Models = (() => {
       }
     }catch(e){}
   }
+  setInterval(() => {
+  if (document.visibilityState === 'visible') pullRemoteOnce();
+}, 20000);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') pullRemoteOnce();
+});
+  async function pushRemote(){
+  if(!SYNC_URL) return;
+  try{
+    await fetch(SYNC_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(db)
+    });
+  }catch(e){
+    // ignore network errors; will try again on next save
+  }
+}
+
+function schedulePush(){
+  if(!AUTOPUSH || !SYNC_URL) return;
+  clearTimeout(__pushTimer);
+  __pushTimer = setTimeout(pushRemote, 1200);
+}
+function schedulePush(){
+  if(!AUTOPUSH || !SYNC_URL) return;
+  clearTimeout(__pushTimer);
+  __pushTimer = setTimeout(pushRemote, 1200);
+}
   pullRemoteOnce();
 
   // ---- Keyboard helpers ----
@@ -937,7 +974,6 @@ const Models = (() => {
     const dlg = qs('#dlg-rename'); const f = qs('#form-rename');
     f.reset(); qs('#rename-input').value = db.meta?.groupName || Models.DEFAULTS.groupName;
     dlg.showModal();
-    dlg.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click', ()=>dlg.close(), {once:true}));
     dlg.addEventListener('close', ()=>{}, {once:true});
     f.onsubmit = (e)=>{
       e.preventDefault();
