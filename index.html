@@ -864,30 +864,53 @@ function save(){
 
   // (Optional) auto-pull once on load to reflect shared changes without clicking Sync
 // --- JSONP helper (cache-busted + single-flight) ---
-function jsonp(url, timeout=8000){
-  return new Promise((resolve, reject) => {
+// --- JSONP helper (robust) ---
+function jsonp(url, timeout = 12000){
+  return new Promise((resolve, reject)=>{
     const cb = '__jsonp_cb_' + Math.random().toString(36).slice(2);
     const sep = url.includes('?') ? '&' : '?';
     const script = document.createElement('script');
-    let done = false;
+    let finished = false;
 
-    function finish(err, data){
-      if (done) return;
-      done = true;
-      delete window[cb];
+    function cleanup(keepNoop = false){
+      if (keepNoop) {
+        // leave a no-op so late scripts won't error; clean it up later
+        window[cb] = ()=>{};
+        setTimeout(()=>{ try{ delete window[cb]; }catch{} }, 60000);
+      } else {
+        try{ delete window[cb]; }catch{}
+      }
       if (script.parentNode) script.parentNode.removeChild(script);
       clearTimeout(timer);
-      err ? reject(err) : resolve(data);
     }
 
-    window[cb] = (data) => finish(null, data);
-    script.src = url + sep + 'callback=' + encodeURIComponent(cb) + '&_=' + Date.now();
-    script.onerror = () => finish(new Error('JSONP network error'));
+    window[cb] = (data)=>{
+      if (finished) return;
+      finished = true;
+      cleanup(false);
+      resolve(data);
+    };
 
-    const timer = setTimeout(() => finish(new Error('JSONP timeout')), timeout);
+    script.src = url + sep + 'callback=' + encodeURIComponent(cb) + '&_=' + Date.now();
+    script.async = true;
+    script.onerror = ()=>{
+      if (finished) return;
+      finished = true;
+      cleanup(true);
+      reject(new Error('JSONP network error'));
+    };
+
+    const timer = setTimeout(()=>{
+      if (finished) return;
+      finished = true;
+      cleanup(true);
+      reject(new Error('JSONP timeout'));
+    }, timeout);
+
     document.head.appendChild(script);
   });
 }
+
 
 // --- Pull once from server (safe bootstrap) ---
 async function pullRemoteOnce(){
