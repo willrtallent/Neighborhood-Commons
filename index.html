@@ -239,7 +239,7 @@ summary{cursor:pointer; font-weight:700; color:#0f3b63}
       <div class="logo" aria-hidden="true"></div>
       <div>
         <span id="brand-name">Neighborhood Commons</span>
-        <small>Hyperlocal sharing &amp; meetups</small>
+        <small>Hyperlocal</small>
       </div>
     </div>
     <div class="actions" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap">
@@ -770,7 +770,8 @@ const Models = (() => {
 <!-- ======= ui.js (logic + board + comments) ======= -->
 <script>
 (() => {
-  const SYNC_URL = 'https://script.google.com/macros/s/AKfycbzlrF7uzEzaQAg6q_n5FkwSr9YJwNfhQcxyChJFAi9_jxOW1lt020746uingrvvIPhG/exec'; // Optional Apps Script web app URL
+  const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxO72vHcL_yyWhxQNQ1ldjxeHDGKm30rKFhaQMggmHYrdiE8PyQf0HMbaUQbkS9TBgZ/exec'; 
+  // Optional Apps Script web app URL
   const AUTOPUSH = true;           // set to false to disable
   let __pushTimer = null;
 
@@ -821,57 +822,85 @@ const Models = (() => {
   renderBrand();
 
   // (Optional) auto-pull once on load to reflect shared changes without clicking Sync
-  async function pullRemoteOnce(){
+// --- JSONP helper (bypasses CORS for GET) ---
+function jsonp(url, timeout=8000){
+  return new Promise((resolve, reject) => {
+    const cb = '__jsonp_cb_' + Math.random().toString(36).slice(2);
+    const sep = url.includes('?') ? '&' : '?';
+    const script = document.createElement('script');
+    const timer = setTimeout(() => { cleanup(); reject(new Error('JSONP timeout')); }, timeout);
+    function cleanup(){ delete window[cb]; script.remove(); clearTimeout(timer); }
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    script.src = url + sep + 'callback=' + cb;
+    script.onerror = () => { cleanup(); reject(new Error('JSONP network error')); };
+    document.head.appendChild(script);
+  });
+}
+
+// --- Pull once from server using JSONP ---
+async function pullRemoteOnce(){
+  if(!SYNC_URL) return;
+  try{
+    const remote = await jsonp(SYNC_URL);
+    if(remote && remote.ok && remote.db){
+      if((remote.savedAt||'') > (db.savedAt||'')){
+        db = remote.db;
+        // Post-migrate after adopting remote (keep your migrations)
+        db.board = db.board || [];
+        db.requests = (db.requests||[]).map(r => ({comments:[], ...r, comments: r.comments || []}));
+        db.events   = (db.events||[]).map(e => ({comments:[], ...e, comments: e.comments || []}));
+        Store.saveAll(db);
+        renderBrand();
+        renderActive();
+      }
+    }
+  }catch(e){
+    // ignore pull errors; try again later
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') pullRemoteOnce();
+});
+  async function pushRemote(){
     if(!SYNC_URL) return;
     try{
-      const res = await fetch(SYNC_URL, {method:'GET'});
-      if(!res.ok) return;
-      const remote = await res.json();
-      if(remote && remote.ok && remote.db){
-        if((remote.savedAt||'') > (db.savedAt||'')){
-          db = remote.db;
-          // Post-migrate after adopting remote
-          db.board = db.board || [];
-          db.requests = (db.requests||[]).map(r => ({comments:[], ...r, comments: r.comments || []}));
-          db.events   = (db.events||[]).map(e => ({comments:[], ...e, comments: e.comments || []}));
-          Store.saveAll(db);
-          renderBrand();
-          renderActive();
-        }
-      }
-    }catch(e){}
+      await fetch(SYNC_URL, {
+        method:'POST',
+        mode:'no-cors',                               // opaque response; avoids CORS errors
+        headers:{ 'Content-Type':'text/plain;charset=utf-8' }, // "simple request" (no preflight)
+        body: JSON.stringify(db)
+      });
+    }catch(e){
+      // ignore push errors; will try again next save
+    }
   }
-  setInterval(() => {
+
+
+function schedulePush(){
+  if(!AUTOPUSH || !SYNC_URL) return;
+  clearTimeout(__pushTimer);
+  __pushTimer = setTimeout(pushRemote, 1200);
+}
+
+  // ... your pullRemoteOnce() function is defined above ...
+
+pullRemoteOnce();   // <-- keep this call
+
+// --- Auto-pull while the tab is visible (every ~20s) ---
+setInterval(() => {
   if (document.visibilityState === 'visible') pullRemoteOnce();
 }, 20000);
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') pullRemoteOnce();
 });
-  async function pushRemote(){
-  if(!SYNC_URL) return;
-  try{
-    await fetch(SYNC_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(db)
-    });
-  }catch(e){
-    // ignore network errors; will try again on next save
-  }
-}
 
-function schedulePush(){
-  if(!AUTOPUSH || !SYNC_URL) return;
-  clearTimeout(__pushTimer);
-  __pushTimer = setTimeout(pushRemote, 1200);
-}
-function schedulePush(){
-  if(!AUTOPUSH || !SYNC_URL) return;
-  clearTimeout(__pushTimer);
-  __pushTimer = setTimeout(pushRemote, 1200);
-}
-  pullRemoteOnce();
+// ---- Keyboard helpers ----
+window.addEventListener('keydown', (e) => {
+  // ...
+});
+
 
   // ---- Keyboard helpers ----
   window.addEventListener('keydown', (e)=>{
