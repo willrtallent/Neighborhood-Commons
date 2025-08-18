@@ -804,12 +804,12 @@ const Models = (() => {
   const escapeHtml = (s='') => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const toISOInput = (iso) => { const d = iso? new Date(iso): new Date(); return d.toISOString().slice(0,16); };
   const todayISO = () => new Date().toISOString();
-  function save(){
+function save(){
   db.savedAt = new Date().toISOString();
   Store.saveAll(db);
   renderActive();
-  schedulePush();   // <- add this line
-  }
+  schedulePush();
+}
 
   // ---- Brand / Theme ----
   function themeSuffix(t){ return t==='xp'?'XP' : t==='modern'?'Modern' : 'Y2K/Win98'; }
@@ -862,19 +862,19 @@ async function pullRemoteOnce(){
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') pullRemoteOnce();
 });
-  async function pushRemote(){
-    if(!SYNC_URL) return;
-    try{
-      await fetch(SYNC_URL, {
-        method:'POST',
-        mode:'no-cors',                               // opaque response; avoids CORS errors
-        headers:{ 'Content-Type':'text/plain;charset=utf-8' }, // "simple request" (no preflight)
-        body: JSON.stringify(db)
-      });
-    }catch(e){
-      // ignore push errors; will try again next save
-    }
-  }
+async function pushRemote(){
+  if(!SYNC_URL) return;
+  try{
+    await fetch(SYNC_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify(db)
+    });
+  }catch(e){}
+}
+
+
 
 
 function schedulePush(){
@@ -974,22 +974,32 @@ window.addEventListener('keydown', (e) => {
     e.target.value='';
   });
 
-  const syncBtn = qs('#btn-sync');
-  if(syncBtn){
-    syncBtn.disabled = !SYNC_URL;
-    syncBtn.title = SYNC_URL ? 'Sync with Google Sheet endpoint' : 'Set SYNC_URL in code to enable';
-    syncBtn.addEventListener('click', async ()=>{
-      if(!SYNC_URL){ toast('Sync not configured','warn'); return; }
-      try{
-        const res = await fetch(SYNC_URL, {method:'GET'});
-        if(res.ok){ const remote = await res.json(); const newer = (remote.savedAt||'') > (db.savedAt||'') ? remote : {db};
-          if(newer.db && newer.db !== db){ db=newer.db; Store.saveAll(db); renderBrand(); }
-        }
-        const push = await fetch(SYNC_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(db)});
-        if(!push.ok) throw new Error('POST failed'); toast('Synced successfully','ok');
-      }catch(err){ console.error(err); toast('Sync error: '+err.message,'err'); }
-    });
-  }
+const syncBtn = qs('#btn-sync');
+if (syncBtn) {
+  syncBtn.disabled = !SYNC_URL;
+  syncBtn.title = SYNC_URL ? 'Sync with Google Sheet endpoint' : 'Set SYNC_URL in code to enable';
+  syncBtn.addEventListener('click', async () => {
+    if (!SYNC_URL) { toast('Sync not configured','warn'); return; }
+    try {
+      // 1) Pull via JSONP (no CORS)
+      await pullRemoteOnce();
+
+      // 2) Push via simple POST (no preflight, don’t read the response)
+      await fetch(SYNC_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(db)
+      });
+
+      toast('Sync sent. Other tabs will catch up shortly.','ok');
+    } catch (err) {
+      console.error(err);
+      toast('Sync error: ' + err.message, 'err');
+    }
+  });
+}
+
 
   qs('#btn-wipe')?.addEventListener('click', ()=>{
     if(confirm('This will clear local data (a backup copy is kept). Proceed?')){
