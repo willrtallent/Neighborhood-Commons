@@ -770,10 +770,14 @@ const Models = (() => {
 <!-- ======= ui.js (logic + board + comments) ======= -->
 <script>
 (() => {
-  const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxO72vHcL_yyWhxQNQ1ldjxeHDGKm30rKFhaQMggmHYrdiE8PyQf0HMbaUQbkS9TBgZ/exec'; 
-  // Optional Apps Script web app URL
+const GROUP_KEY = 'brentwood';
+const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxO72vHcL_yyWhxQNQ1ldjxeHDGKm30rKFhaQMggmHYrdiE8PyQf0HMbaUQbkS9TBgZ/exec?group=' + encodeURIComponent(GROUP_KEY);
+
 const AUTOPUSH = true;
 let __pushTimer = null;
+let __pullInFlight = false;
+let __bootstrapped = false;
+let __justSeeded = false;
 
 async function pushRemote(){
   if(!SYNC_URL) return;
@@ -784,14 +788,15 @@ async function pushRemote(){
       headers:{ 'Content-Type':'text/plain;charset=utf-8' },
       body: JSON.stringify(db)
     });
-  }catch(e){}
+  }catch(_e){}
 }
 
 function schedulePush(){
-  if(!AUTOPUSH || !SYNC_URL) return;
+  if(!AUTOPUSH || !SYNC_URL || !__bootstrapped) return; // avoid pushing before we’ve tried pulling
   clearTimeout(__pushTimer);
   __pushTimer = setTimeout(pushRemote, 1200);
 }
+
 
 function save(){
   db.savedAt = new Date().toISOString();
@@ -809,8 +814,12 @@ function save(){
 
   // ---- Load / migrate DB ----
   let db = Store.loadAll();
-  if(!db){ db = Models.seed(); Store.saveAll(db); }
-  // Migrations for new features
+  if(!db){
+    db = Models.seed();
+    Store.saveAll(db);
+    __justSeeded = true;           // IMPORTANT: mark this tab as a fresh seed
+  }
+  // migrations for new features (keep as-is)
   db.board = db.board || [];
   db.requests = (db.requests||[]).map(r => ({comments:[], ...r, comments: r.comments || []}));
   db.events   = (db.events||[]).map(e => ({comments:[], ...e, comments: e.comments || []}));
@@ -821,6 +830,7 @@ function save(){
   if(!db.meta.categories) db.meta.categories = Models.DEFAULTS.categories;
   if(!db.meta.itemTags) db.meta.itemTags = Models.DEFAULTS.itemTags;
 
+
   // ---- Helpers ----
   const qs = (sel, el=document) => el.querySelector(sel);
   const qsa = (sel, el=document) => [...el.querySelectorAll(sel)];
@@ -829,12 +839,7 @@ function save(){
   const escapeHtml = (s='') => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const toISOInput = (iso) => { const d = iso? new Date(iso): new Date(); return d.toISOString().slice(0,16); };
   const todayISO = () => new Date().toISOString();
-function save(){
-  db.savedAt = new Date().toISOString();
-  Store.saveAll(db);
-  renderActive();
-  schedulePush();
-}
+
 
   // ---- Brand / Theme ----
   function themeSuffix(t){ return t==='xp'?'XP' : t==='modern'?'Modern' : 'Y2K/Win98'; }
@@ -847,10 +852,7 @@ function save(){
   renderBrand();
 
   // (Optional) auto-pull once on load to reflect shared changes without clicking Sync
-// --- JSONP helper (bypasses CORS for GET) ---
-// --- JSONP helper: cache-busted + single-flight ---
-let __pullInFlight = false;
-
+// --- JSONP helper (cache-busted + single-flight) ---
 function jsonp(url, timeout=8000){
   return new Promise((resolve, reject) => {
     const cb = '__jsonp_cb_' + Math.random().toString(36).slice(2);
@@ -867,10 +869,7 @@ function jsonp(url, timeout=8000){
       err ? reject(err) : resolve(data);
     }
 
-    // Define callback BEFORE loading the script
     window[cb] = (data) => finish(null, data);
-
-    // Add cache-buster so we never execute a cached JSONP payload with the wrong callback
     script.src = url + sep + 'callback=' + encodeURIComponent(cb) + '&_=' + Date.now();
     script.onerror = () => finish(new Error('JSONP network error'));
 
@@ -879,37 +878,43 @@ function jsonp(url, timeout=8000){
   });
 }
 
-// --- Pull once from server using JSONP (guard against overlap) ---
+// --- Pull once from server (safe bootstrap) ---
 async function pullRemoteOnce(){
   if (!SYNC_URL || __pullInFlight) return;
   __pullInFlight = true;
   try{
     const remote = await jsonp(SYNC_URL);
-    if(remote && remote.ok && remote.db){
-      if((remote.savedAt||'') > (db.savedAt||'')){
-        db = remote.db;
-
-        // Post-migrate after adopting remote
-        db.board = db.board || [];
-        db.requests = (db.requests||[]).map(r => ({comments:[], ...r, comments: r.comments || []}));
-        db.events   = (db.events||[]).map(e => ({comments:[], ...e, comments: e.comments || []}));
-
-        Store.saveAll(db);
-        renderBrand();
-        renderActive();
+    if(remote && remote.ok){
+      if(remote.db){
+        const serverNewer = (remote.savedAt||'') > (db.savedAt||'');
+        // On first run (just seeded), ALWAYS prefer server snapshot if it exists
+        if(__justSeeded || serverNewer){
+          db = remote.db;
+          // post-migrate
+          db.board = db.board || [];
+          db.requests = (db.requests||[]).map(r => ({comments:[], ...r, comments: r.comments || []}));
+          db.events   = (db.events||[]).map(e => ({comments:[], ...e, comments: e.comments || []}));
+          Store.saveAll(db);
+          renderBrand();
+          renderActive();
+        }
+      } else {
+        // Server empty; if this tab just seeded, push it once after a short beat
+        if(__justSeeded){ setTimeout(pushRemote, 400); }
       }
     }
-  }catch(e){
-    // silently ignore; next interval/Sync will try again
+  }catch(_e){
+    // ignore; next timer/Sync tries again
   }finally{
+    __justSeeded = false;
     __pullInFlight = false;
+    __bootstrapped = true;
   }
 }
 
+pullRemoteOnce();  // try once on load
 
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') pullRemoteOnce();
-  if (SYNC_URL) {
+if (SYNC_URL) {
   setInterval(() => {
     if (document.visibilityState === 'visible') pullRemoteOnce();
   }, 20000);
@@ -917,18 +922,6 @@ document.addEventListener('visibilitychange', () => {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') pullRemoteOnce();
   });
-}
-});
-async function pushRemote(){
-  if(!SYNC_URL) return;
-  try{
-    await fetch(SYNC_URL, {
-      method:'POST',
-      mode:'no-cors',
-      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
-      body: JSON.stringify(db)
-    });
-  }catch(e){}
 }
 
 
@@ -1038,24 +1031,48 @@ if (syncBtn) {
   syncBtn.addEventListener('click', async () => {
     if (!SYNC_URL) { toast('Sync not configured','warn'); return; }
     try {
-      // 1) Push your current local DB (simple POST, no preflight; don’t read response)
-      await fetch(SYNC_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(db)
-      });
+      // Pull first (cache-busted)
+      const remote = await jsonp(SYNC_URL + (SYNC_URL.includes('?')?'&':'?') + '_=' + Date.now());
+      let shouldPush = true;
 
-      // 2) After a short beat, pull the fresh snapshot back down (JSONP)
-      setTimeout(() => pullRemoteOnce(), 900);
+      if (remote && remote.ok){
+        if (remote.db){
+          // If this tab just seeded OR the server is newer, adopt server and don't push
+          if (__justSeeded || (remote.savedAt||'') > (db.savedAt||'')) {
+            db = remote.db;
+            db.board = db.board || [];
+            db.requests = (db.requests||[]).map(r => ({comments:[], ...r, comments: r.comments || []}));
+            db.events   = (db.events||[]).map(e => ({comments:[], ...e, comments: e.comments || []}));
+            Store.saveAll(db);
+            renderBrand(); renderActive();
+            shouldPush = false;
+            toast('Pulled latest from server','ok');
+          }
+        } else {
+          // server empty -> we will push local
+          shouldPush = true;
+        }
+      }
 
-      toast('Sync sent. Others will see it shortly.','ok');
+      if (shouldPush){
+        await fetch(SYNC_URL, {
+          method:'POST',
+          mode:'no-cors',
+          headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+          body: JSON.stringify(db)
+        });
+        setTimeout(() => pullRemoteOnce(), 800);     // confirm snapshot
+        toast('Pushed and refreshed','ok');
+      }
     } catch (err) {
       console.error(err);
       toast('Sync error: ' + err.message, 'err');
+    } finally {
+      __justSeeded = false;
     }
   });
 }
+
 
 
   qs('#btn-wipe')?.addEventListener('click', ()=>{
