@@ -242,18 +242,27 @@ summary{cursor:pointer; font-weight:700; color:#0f3b63}
         <small>Hyperlocal</small>
       </div>
     </div>
+
     <div class="actions" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap">
       <button class="btn small ghost" id="btn-settings" title="Preferences (theme & more)">⚙ Settings</button>
       <button class="btn small" id="btn-rename" title="Change group name (e.g., Grover Commons)">Rename</button>
-      <button class="btn small" id="btn-export" aria-label="Export data as JSON">Export JSON</button>
-      <label class="btn small ghost" for="import-input" aria-label="Import data from JSON">
+
+      <!-- Power tools (hidden by default with [data-power]) -->
+      <button class="btn small" id="btn-export" aria-label="Export data as JSON" data-power>Export JSON</button>
+
+      <label class="btn small ghost" for="import-input" aria-label="Import data from JSON" data-power style="cursor:pointer">
         Import JSON
-        <input id="import-input" type="file" accept="application/json" class="sr-only" />
+        <input id="import-input" type="file" accept="application/json" class="sr-only" data-power />
       </label>
-      <button class="btn small" id="btn-sync" title="Optional: sync with Google Sheet endpoint">Sync</button>
-      <button class="btn small danger" id="btn-wipe" title="Clear all local data (keeps a backup)">Reset</button>
+
+      <button class="btn small" id="btn-sync" title="Optional: sync with Google Sheet endpoint" data-power>Sync</button>
+      <button class="btn small danger" id="btn-wipe" title="Clear all local data (keeps a backup)" data-power>Reset</button>
+      
     </div>
   </div>
+  [data-power]{ display:none !important; }
+</header>
+
   <nav class="tabbar" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" aria-selected="true"  aria-controls="panel-items"   id="tab-items">Items</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="panel-board"   id="tab-board">Board</button>
